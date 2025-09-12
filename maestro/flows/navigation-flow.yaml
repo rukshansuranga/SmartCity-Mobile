@@ -1,0 +1,60 @@
+---
+appId: com.rukshansuranga.smartcity
+name: Navigation Flow Test
+---
+# Test navigation between all main sections
+- launchApp
+
+# Login
+- tapOn: "Email"
+- inputText: "test@smartcity.com"
+- tapOn: "Password"
+- inputText: "Test123!"
+- tapOn: "Sign In"
+
+# Test Home navigation
+- tapOn: "Home"
+- assertVisible: "Welcome"
+- takeScreenshot: "./screenshots/home_screen.png"
+
+# Test Complains navigation
+- tapOn: "Complains"
+- assertVisible: "Complains"
+- assertVisible: "General"
+- assertVisible: "Light Post"
+- assertVisible: "Project"
+- takeScreenshot: "./screenshots/complains_navigation.png"
+
+# Test Projects navigation
+- tapOn: "Projects"
+- assertVisible: "Projects"
+- assertVisible: "Project List"
+- assertVisible: "Road Projects"
+- takeScreenshot: "./screenshots/projects_navigation.png"
+
+# Test Garbage navigation
+- tapOn: "Garbage"
+- assertVisible: "Garbage Management"
+- assertVisible: "Tracking"
+- assertVisible: "Schedule"
+- takeScreenshot: "./screenshots/garbage_navigation.png"
+
+# Test Notifications navigation
+- tapOn: "Notifications"
+- assertVisible: "Notifications"
+- takeScreenshot: "./screenshots/notifications_navigation.png"
+
+# Test back navigation
+- tapOn: "← Back"
+- tapOn: "Home"
+- assertVisible: "Welcome"
+
+# Test deep navigation
+- tapOn: "Complains"
+- tapOn: "General"
+- assertVisible: "General Complains"
+- tapOn: "← Back"
+- assertVisible: "Complains"
+- tapOn: "← Back"
+- assertVisible: "Home"
+- takeScreenshot: "./screenshots/deep_navigation_test.png"

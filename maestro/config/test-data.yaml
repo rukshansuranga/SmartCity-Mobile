@@ -1,0 +1,65 @@
+# Test Data Configuration for SmartCity App
+
+# Test User Credentials
+test_users:
+  valid_user:
+    email: "test@smartcity.com"
+    password: "Test123!"
+
+  invalid_user:
+    email: "invalid@test.com"
+    password: "wrong_password"
+
+# Sample Complain Data
+test_complains:
+  general:
+    title: "Road Maintenance Issue"
+    description: "The road near sector 5 has several potholes that need immediate attention"
+    category: "Infrastructure"
+
+  lightpost:
+    location: "Main Street, Sector 3"
+    issue: "Light not working"
+    description: "Street light has been out for 3 days"
+
+  project:
+    title: "Construction Noise"
+    description: "Excessive noise during late night hours from ongoing construction"
+
+# Mock Project Data
+test_projects:
+  road_project:
+    name: "Highway Expansion Project"
+    location: "Highway 101"
+    status: "In Progress"
+    completion: "75%"
+
+  building_project:
+    name: "Community Center Construction"
+    location: "Downtown Area"
+    status: "Planning"
+    completion: "15%"
+
+# App Navigation Elements
+navigation:
+  bottom_tabs:
+    - "Home"
+    - "Complains"
+    - "Projects"
+    - "Garbage"
+    - "Notifications"
+
+# Common UI Elements
+ui_elements:
+  buttons:
+    submit: "Submit"
+    cancel: "Cancel"
+    save: "Save"
+    delete: "Delete"
+    edit: "Edit"
+
+  inputs:
+    email: "Email"
+    password: "Password"
+    title: "Title"
+    description: "Description"

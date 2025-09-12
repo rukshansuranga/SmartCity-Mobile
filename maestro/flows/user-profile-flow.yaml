@@ -1,0 +1,65 @@
+---
+appId: com.rukshansuranga.smartcity
+name: User Profile Flow Test
+---
+# Test user profile management
+- launchApp
+
+# Login
+- tapOn: "Email"
+- inputText: "test@smartcity.com"
+- tapOn: "Password"
+- inputText: "Test123!"
+- tapOn: "Sign In"
+
+# Navigate to Profile (assuming there's a profile button or menu)
+- tapOn: "Profile"
+- assertVisible: "User Profile"
+- takeScreenshot: "./screenshots/user_profile.png"
+
+# Test edit profile
+- tapOn: "Edit Profile"
+- assertVisible: "Edit User Profile"
+
+# Update profile information
+- tapOn: "Full Name"
+- clearText
+- inputText: "John Doe Updated"
+
+- tapOn: "Phone"
+- clearText
+- inputText: "+1234567890"
+
+- tapOn: "Address"
+- clearText
+- inputText: "123 Smart City Avenue, Tech District"
+- takeScreenshot: "./screenshots/edit_profile_form.png"
+
+# Save profile changes
+- tapOn: "Save Changes"
+- assertVisible: "Profile updated successfully"
+- takeScreenshot: "./screenshots/profile_update_success.png"
+
+# Verify updated information
+- assertVisible: "John Doe Updated"
+- assertVisible: "+1234567890"
+- assertVisible: "123 Smart City Avenue"
+
+# Test profile picture update (if available)
+- tapOn: "Change Photo"
+- assertVisible: "Select Image Source"
+- tapOn: "Gallery"
+-  # Note: This would require actual image selection in real test
+
+# Test settings access from profile
+- tapOn: "Settings"
+- assertVisible: "App Settings"
+- takeScreenshot: "./screenshots/app_settings.png"
+
+# Test notification settings
+- tapOn: "Notification Settings"
+- assertVisible: "Push Notifications"
+- tapOn: "Push Notifications" # Toggle
+- tapOn: "Email Notifications" # Toggle
+- tapOn: "Save Settings"
+- assertVisible: "Settings saved"

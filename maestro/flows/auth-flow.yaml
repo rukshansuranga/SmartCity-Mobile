@@ -1,0 +1,32 @@
+---
+appId: com.rukshansuranga.smartcity
+name: Authentication Flow Test
+---
+# Test complete authentication flow including sign in and sign up
+- launchApp
+- assertVisible: "Sign In"
+
+# Test Sign In with valid credentials
+- tapOn: "Email"
+- inputText: "test@smartcity.com"
+- tapOn: "Password"
+- inputText: "Test123!"
+- tapOn: "Sign In"
+
+# Verify successful login
+- assertVisible:
+    text: "Home"
+    timeout: 5000
+- takeScreenshot: "./screenshots/auth_success.png"
+
+# Test navigation after login
+- assertVisible: "Complains"
+- assertVisible: "Projects"
+- assertVisible: "Garbage"
+- assertVisible: "Notifications"
+
+# Test logout (if available)
+- tapOn: "Profile"
+- tapOn: "Logout"
+- assertVisible: "Sign In"
+- takeScreenshot: "./screenshots/auth_logout.png"

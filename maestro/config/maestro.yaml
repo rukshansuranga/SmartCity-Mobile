@@ -1,0 +1,42 @@
+# Maestro Configuration File
+# Global settings for Maestro test execution
+
+# Screenshots configuration
+screenshots:
+  enabled: true
+  directory: "./screenshots"
+  format: "png"
+  quality: 80
+
+# Test execution settings
+execution:
+  timeout: 30000 # 30 seconds default timeout
+  retries: 2
+  continueOnFailure: false
+
+# Device settings
+device:
+  orientation: "portrait"
+  locale: "en_US"
+  timezone: "America/New_York"
+
+# Network settings
+network:
+  timeout: 10000
+  retries: 3
+
+# Logging
+logging:
+  level: "info"
+  screenshots_on_failure: true
+
+# Test reporting
+reporting:
+  format: "junit"
+  include_screenshots: true
+
+# Environment variables for tests
+env:
+  TEST_USER_EMAIL: "test@smartcity.com"
+  TEST_USER_PASSWORD: "Test123!"
+  APP_PACKAGE: "com.rukshansuranga.smartcity"

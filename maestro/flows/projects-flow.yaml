@@ -1,0 +1,72 @@
+---
+appId: com.rukshansuranga.smartcity
+name: Projects Flow Test
+---
+# Test projects functionality including list, detail, and feedback
+- launchApp
+
+# Login
+- tapOn: "Email"
+- inputText: "test@smartcity.com"
+- tapOn: "Password"
+- inputText: "Test123!"
+- tapOn: "Sign In"
+
+# Navigate to Projects
+- tapOn: "Projects"
+- assertVisible: "Projects"
+- takeScreenshot: "./screenshots/projects_home.png"
+
+# Test project list
+- tapOn: "Project List"
+- assertVisible: "Project List"
+- takeScreenshot: "./screenshots/projects_list.png"
+
+# Test project details
+- tapOn:
+    text: "Highway Expansion Project"
+    index: 0
+- assertVisible: "Project Details"
+- assertVisible: "Highway Expansion Project"
+- takeScreenshot: "./screenshots/project_detail.png"
+
+# Test project tabs navigation
+- tapOn: "Complains"
+- assertVisible: "Project Complains"
+- takeScreenshot: "./screenshots/project_complains_tab.png"
+
+- tapOn: "Feedback"
+- assertVisible: "Project Feedback"
+- takeScreenshot: "./screenshots/project_feedback_tab.png"
+
+# Test adding project feedback
+- tapOn: "Add Feedback"
+- assertVisible: "Add Feedback"
+- tapOn: "Rating"
+- tapOn: "★★★★★" # 5 stars
+- tapOn: "Comment"
+- inputText: "Great progress on this project. The road quality is much improved."
+- takeScreenshot: "./screenshots/project_feedback_form.png"
+
+# Submit feedback
+- tapOn: "Submit Feedback"
+- assertVisible: "Feedback submitted successfully"
+- takeScreenshot: "./screenshots/project_feedback_success.png"
+
+# Test road projects
+- tapOn: "Road Projects"
+- assertVisible: "Road Projects"
+- takeScreenshot: "./screenshots/road_projects.png"
+
+# Test project complain
+- tapOn: "Add Complain"
+- assertVisible: "Select Project"
+- tapOn: "Highway Expansion Project"
+- assertVisible: "Add Project Complain"
+- tapOn: "Title"
+- inputText: "Construction Noise"
+- tapOn: "Description"
+- inputText: "Excessive noise during late night hours"
+- takeScreenshot: "./screenshots/project_complain_form.png"
+- tapOn: "Submit"
+- assertVisible: "Complain submitted successfully"

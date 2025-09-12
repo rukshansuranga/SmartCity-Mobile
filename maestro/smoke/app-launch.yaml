@@ -1,0 +1,11 @@
+---
+appId: com.rukshansuranga.smartcity
+name: SmartCity App Basic Launch Test
+---
+# Basic smoke test to ensure the app launches successfully
+- launchApp
+- assertVisible: "SmartCity"
+- assertVisible:
+    text: "Sign In"
+    enabled: true
+- takeScreenshot: "./screenshots/app_launched.png"

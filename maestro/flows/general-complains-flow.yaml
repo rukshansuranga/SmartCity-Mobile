@@ -1,0 +1,47 @@
+---
+appId: com.rukshansuranga.smartcity
+name: General Complains Flow Test
+---
+# Test adding and viewing general complains
+- launchApp
+- assertVisible: "Sign In"
+
+# Login first
+- tapOn: "Email"
+- inputText: "test@smartcity.com"
+- tapOn: "Password"
+- inputText: "Test123!"
+- tapOn: "Sign In"
+
+# Navigate to Complains section
+- tapOn: "Complains"
+- assertVisible: "Complains"
+
+# Navigate to General Complains
+- tapOn: "General"
+- assertVisible: "General Complains"
+- takeScreenshot: "./screenshots/general_complains_list.png"
+
+# Test adding new general complain
+- tapOn: "Add"
+- assertVisible: "Add General Complain"
+
+# Fill complain form
+- tapOn: "Title"
+- inputText: "Road Maintenance Issue"
+- tapOn: "Description"
+- inputText: "The road near sector 5 has several potholes that need immediate attention"
+- tapOn: "Category"
+- tapOn: "Infrastructure"
+- takeScreenshot: "./screenshots/general_complain_form.png"
+
+# Submit complain
+- tapOn: "Submit"
+- assertVisible: "Complain submitted successfully"
+- takeScreenshot: "./screenshots/general_complain_success.png"
+
+# Verify complain appears in list
+- assertVisible: "Road Maintenance Issue"
+- tapOn: "Road Maintenance Issue"
+- assertVisible: "The road near sector 5 has several potholes"
+- takeScreenshot: "./screenshots/general_complain_detail.png"

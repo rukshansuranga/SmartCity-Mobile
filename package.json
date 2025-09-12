@@ -8,7 +8,17 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "test:maestro": "maestro test maestro/",
+    "test:smoke": "maestro test maestro/smoke/",
+    "test:flows": "maestro test maestro/flows/",
+    "test:maestro:watch": "maestro test maestro/ --continuous",
+    "test:auth": "maestro test maestro/flows/auth-flow.yaml",
+    "test:complains": "maestro test maestro/flows/general-complains-flow.yaml",
+    "test:lightpost": "maestro test maestro/flows/lightpost-complains-flow.yaml",
+    "test:projects": "maestro test maestro/flows/projects-flow.yaml",
+    "test:garbage": "maestro test maestro/flows/garbage-flow.yaml",
+    "test:navigation": "maestro test maestro/flows/navigation-flow.yaml"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",

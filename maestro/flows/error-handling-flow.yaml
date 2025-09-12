@@ -1,0 +1,67 @@
+---
+appId: com.rukshansuranga.smartcity
+name: Error Handling Flow Test
+---
+# Test error handling and edge cases
+- launchApp
+
+# Test invalid login
+- tapOn: "Email"
+- inputText: "invalid@test.com"
+- tapOn: "Password"
+- inputText: "wrong_password"
+- tapOn: "Sign In"
+- assertVisible: "Invalid credentials"
+- takeScreenshot: "./screenshots/invalid_login_error.png"
+
+# Test empty form submission
+- clearText
+- tapOn: "Sign In"
+- assertVisible: "Please fill all required fields"
+- takeScreenshot: "./screenshots/empty_form_error.png"
+
+# Login with valid credentials for further tests
+- tapOn: "Email"
+- clearText
+- inputText: "test@smartcity.com"
+- tapOn: "Password"
+- clearText
+- inputText: "Test123!"
+- tapOn: "Sign In"
+
+# Test network error handling (simulate by testing offline scenarios)
+- tapOn: "Complains"
+- tapOn: "General"
+- tapOn: "Add"
+- tapOn: "Title"
+- inputText: "Test Complain"
+- tapOn: "Description"
+- inputText: "Test description"
+# If network is unavailable, should show appropriate error
+- tapOn: "Submit"
+# Wait for either success or network error
+- assertVisible:
+    text:
+      ["Complain submitted successfully", "Network error", "Connection failed"]
+    timeout: 10000
+- takeScreenshot: "./screenshots/network_error_handling.png"
+
+# Test form validation
+- tapOn: "Projects"
+- tapOn: "Add Feedback"
+- tapOn: "Submit Feedback" # Submit empty form
+- assertVisible: "Rating is required"
+- takeScreenshot: "./screenshots/form_validation_error.png"
+
+# Test invalid data input
+- tapOn: "Comment"
+- inputText: "a" # Too short
+- tapOn: "Submit Feedback"
+- assertVisible: "Comment must be at least 10 characters"
+- takeScreenshot: "./screenshots/input_validation_error.png"
+
+# Test app recovery after error
+- tapOn: "Cancel"
+- tapOn: "Home"
+- assertVisible: "Welcome"
+- takeScreenshot: "./screenshots/app_recovery.png"

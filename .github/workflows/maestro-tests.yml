@@ -1,0 +1,81 @@
+name: Maestro E2E Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  maestro-android:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Maestro CLI
+        run: |
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "${HOME}/.maestro/bin" >> $GITHUB_PATH
+
+      - name: Start Android Emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          profile: Nexus 6
+          script: echo "Emulator started"
+
+      - name: Build Android APK
+        run: |
+          npx expo install --fix
+          npx eas build --platform android --local --non-interactive
+
+      - name: Install APK on Emulator
+        run: |
+          adb install -r *.apk
+
+      - name: Run Maestro Smoke Tests
+        run: |
+          maestro test maestro/smoke/ --format junit --output maestro-smoke-results.xml
+
+      - name: Run Maestro Flow Tests
+        run: |
+          maestro test maestro/flows/ --format junit --output maestro-flows-results.xml
+        continue-on-error: true
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maestro-test-results
+          path: |
+            maestro-*.xml
+            maestro/screenshots/
+
+      - name: Upload Test Screenshots
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maestro-screenshots
+          path: maestro/screenshots/

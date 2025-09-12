@@ -1,0 +1,57 @@
+---
+appId: com.rukshansuranga.smartcity
+name: Light Post Complains Flow Test
+---
+# Test light post complain functionality
+- launchApp
+
+# Login
+- tapOn: "Email"
+- inputText: "test@smartcity.com"
+- tapOn: "Password"
+- inputText: "Test123!"
+- tapOn: "Sign In"
+
+# Navigate to Light Post Complains
+- tapOn: "Complains"
+- tapOn: "Light Post"
+- assertVisible: "Light Post Complains"
+- takeScreenshot: "./screenshots/lightpost_complains_list.png"
+
+# Test adding new light post complain
+- tapOn: "Add"
+- assertVisible: "Add Light Post Complain"
+
+# Fill light post complain form
+- tapOn: "Location"
+- inputText: "Main Street, Sector 3"
+- tapOn: "Issue Type"
+- tapOn: "Light not working"
+- tapOn: "Description"
+- inputText: "Street light has been out for 3 days"
+- takeScreenshot: "./screenshots/lightpost_complain_form.png"
+
+# Test map selection (if available)
+- tapOn: "Select on Map"
+- assertVisible: "Map"
+- tapOn:
+    point: "50%,50%" # Tap center of screen/map
+- tapOn: "Confirm Location"
+- takeScreenshot: "./screenshots/lightpost_map_selection.png"
+
+# Submit complain
+- tapOn: "Submit"
+- assertVisible: "Light post complain submitted"
+- takeScreenshot: "./screenshots/lightpost_complain_success.png"
+
+# Test light post complain list view
+- assertVisible: "Main Street, Sector 3"
+- tapOn: "Main Street, Sector 3"
+- assertVisible: "Light not working"
+- assertVisible: "Street light has been out for 3 days"
+- takeScreenshot: "./screenshots/lightpost_complain_detail.png"
+
+# Test light post summary view
+- tapOn: "Summary"
+- assertVisible: "Light Post Summary"
+- takeScreenshot: "./screenshots/lightpost_summary.png"
