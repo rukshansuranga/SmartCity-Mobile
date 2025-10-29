@@ -22,6 +22,13 @@ export async function addGeneralComplain(
   return fetchWrapper.post("complain/general", complain);
 }
 
+export async function updateGeneralComplain(
+  complainId: number,
+  complain: GeneralComplain
+): Promise<ApiResponse<GeneralComplain>> {
+  return fetchWrapper.put(`complain/general/${complainId}`, complain);
+}
+
 export async function GetGeneralComplainPaging(
   page,
   isPrivate,
@@ -36,6 +43,13 @@ export async function deleteGeneralComplain(
   complainId: number
 ): Promise<ApiResponse<void>> {
   return fetchWrapper.del(`complain/general/${complainId}`);
+}
+
+export async function getGeneralComplainById(
+  id: number
+): Promise<ApiResponse<GeneralComplain>> {
+  console.log("🚀 [DEBUG] Fetching complain data for ID:", id);
+  return fetchWrapper.get(`complain/general/${id}`);
 }
 
 // Project Complain Actions

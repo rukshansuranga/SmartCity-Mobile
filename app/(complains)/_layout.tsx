@@ -3,6 +3,7 @@ import "react-native-get-random-values";
 // prettier-ignore-end
 
 import "@/global.css";
+
 import { Stack } from "expo-router";
 
 export default function ComplainLayout() {
@@ -14,7 +15,7 @@ export default function ComplainLayout() {
         options={{ title: "General Complains" }}
       />
       <Stack.Screen
-        name="general/AddGeneralComplain"
+        name="general/ManageGeneralComplain"
         options={{ title: "Add General Complains" }}
       />
 

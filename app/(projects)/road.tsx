@@ -76,7 +76,7 @@ export default function Road() {
 
   const navigateToDetail = useCallback(
     (item) => {
-      router.navigate({
+      router.push({
         pathname: "/projectDetail",
         params: { projectId: item.id },
       });

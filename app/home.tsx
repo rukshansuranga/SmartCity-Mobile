@@ -1,3 +1,4 @@
+import { ROUTES } from "@/constants/routes";
 import { useRouter } from "expo-router";
 import { Text, View } from "react-native";
 import { Button } from "react-native-paper";
@@ -9,22 +10,12 @@ export default function Index() {
     <View className="flex-1 justify-center items-center gap-6 bg-[#c7f9cc] px-4">
       {[
         // Button data for DRY formatting
-        {
-          label: "Road",
-          route: "/projectList?projectType=Road",
-        },
-        {
-          label: "Irrigation",
-          route: "/projectList?projectType=Irrigation",
-        },
-        {
-          label: "Construction",
-          route: "/projectList?projectType=Construction",
-        },
-        {
-          label: "Other",
-          route: "/projectList?projectType=Other",
-        },
+        { label: "Complains", route: ROUTES.COMPLAINS },
+        { label: "Garbage", route: ROUTES.GARBAGE },
+        { label: "Projects", route: ROUTES.PROJECTS },
+        { label: "Tax", route: ROUTES.TAX },
+        { label: "Adviser", route: ROUTES.ADVISER },
+        { label: "Profile", route: ROUTES.PROFILE },
       ].map(({ label, route }, idx) => (
         <View
           key={label}

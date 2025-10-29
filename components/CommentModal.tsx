@@ -1,4 +1,4 @@
-import { EntityType } from "@/types";
+import { EntityType } from "@/enums/enum";
 import React from "react";
 import { Modal, Text, View } from "react-native";
 import { IconButton } from "react-native-paper";
@@ -59,7 +59,7 @@ export const CommentModal: React.FC<CommentModalProps> = ({
 
           <View className="flex-1">
             <CommentSection
-              entityType={EntityType.GeneralComplain}
+              entityType={entityType}
               entityId={entityId || ""}
               isPrivate={isPrivate}
             />

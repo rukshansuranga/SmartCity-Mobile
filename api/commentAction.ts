@@ -1,5 +1,6 @@
+import { EntityType } from "@/enums/enum";
 import { fetchWrapper } from "@/lib/fetchWrapper";
-import { ApiResponse, Comment, EntityType } from "@/types";
+import { ApiResponse, Comment } from "@/types";
 
 export async function addComment(
   comment: Partial<Comment>

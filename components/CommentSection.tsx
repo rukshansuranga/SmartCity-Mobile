@@ -4,9 +4,9 @@ import {
   getCommentsByEntity,
   updateComment,
 } from "@/api/commentAction";
-import { CommentType } from "@/enums/enum";
+import { CommentType, EntityType } from "@/enums/enum";
 import { useAuthStore } from "@/stores/authStore";
-import { Comment, EntityType } from "@/types";
+import { Comment } from "@/types";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, Text, View } from "react-native";
 import { Button, IconButton, MD2Colors, TextInput } from "react-native-paper";
@@ -84,17 +84,50 @@ const CommentItem: React.FC<CommentItemProps> = ({
         elevation: 3,
       }}
     >
+      {/* Row for name and edit/delete icons */}
       <View
-        className={`flex-row ${isFromClient ? "justify-start" : "justify-end"} items-center`}
+        className={`flex-row ${isFromClient ? "justify-end" : "justify-start"} items-center mb-1`}
+      >
+        <Text
+          className={`text-[#22577a] text-sm font-semibold`}
+          style={{ flexShrink: 1, marginRight: 8 }}
+        >
+          {displayName || "Unknown User"}
+        </Text>
+        {isOwner && (canEdit || canDelete) && (
+          <View className="flex flex-row justify-end gap-5">
+            {canEdit && (
+              <IconButton
+                icon="pencil"
+                mode="contained"
+                className="bg-[#57cc99]"
+                size={16}
+                style={{ margin: 0, padding: 0, marginRight: -6 }}
+                onPress={handleEdit}
+              />
+            )}
+            {canDelete && (
+              <IconButton
+                icon="delete"
+                mode="contained"
+                className="bg-[#57cc99]"
+                size={16}
+                style={{ margin: 0, padding: 0, marginLeft: -6 }}
+                onPress={handleDelete}
+              />
+            )}
+          </View>
+        )}
+      </View>
+      {/* Main content row */}
+      <View
+        className={`flex-row ${isFromClient ? "justify-end" : "justify-start"} items-center`}
       >
         <View
-          className={`flex-1 ml-2 ${isFromClient ? "items-start" : "items-end"}`}
+          className={`flex-1 ml-2 ${isFromClient ? "items-end" : "items-start"}`}
         >
-          <Text className="text-[#22577a] text-sm font-semibold mb-1">
-            {displayName || "Unknown User"}
-          </Text>
           <Text
-            className={`text-[#22577a] ${isFromClient ? "text-left" : "text-right"}`}
+            className={`text-[#22577a] ${isFromClient ? "text-right" : "text-left"}`}
           >
             {comment.text}
           </Text>
@@ -104,28 +137,6 @@ const CommentItem: React.FC<CommentItemProps> = ({
             </Text>
           )}
         </View>
-        {isOwner && (canEdit || canDelete) && (
-          <View className="flex-row ml-1" style={{ gap: -4 }}>
-            {canEdit && (
-              <IconButton
-                icon="pencil"
-                iconColor="#38a3a5"
-                size={16}
-                style={{ margin: 0, padding: 0, marginRight: -6 }}
-                onPress={handleEdit}
-              />
-            )}
-            {canDelete && (
-              <IconButton
-                icon="delete"
-                iconColor="#d32f2f"
-                size={16}
-                style={{ margin: 0, padding: 0, marginLeft: -6 }}
-                onPress={handleDelete}
-              />
-            )}
-          </View>
-        )}
       </View>
     </View>
   );

@@ -1,5 +1,6 @@
 import {
   CommentType,
+  EntityType,
   NotificationStatus,
   NotificationType,
   ProjectProgressApprovedStatus,
@@ -87,19 +88,6 @@ export type Comment = {
   updatedAt?: string;
 };
 
-export enum EntityType {
-  Complain = 0,
-  LightpostComplain = 1,
-  ProjectComplain = 2,
-  GeneralComplain = 3,
-  GarbageComplain = 4,
-  Project = 5,
-  Ticket = 6,
-  ProjectTicket = 7,
-  InternalTicket = 8,
-  ComplainTicket = 9,
-}
-
 export type Notification = {
   id: number;
   subject: string;
@@ -141,3 +129,155 @@ export type ProjectProgress = {
     lastName?: string;
   };
 };
+
+export type Attachment = {
+  attachmentId: number;
+  fileName: string;
+  thumbnailFileName?: string;
+  originalFileName: string;
+  contentType: string;
+  fileSize: number;
+  description?: string;
+  entityType: EntityType; // Now uses enum EntityType
+  entityId: number;
+  attachmentType?: string; // "Document", "Image", "Video", etc.
+  category?: string; // "Specification", "Progress", "Evidence", etc.
+  orderIndex?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+  sourceUrl?: string;
+  thumbnailUrl?: string;
+};
+
+export type AttachmentUpload = {
+  file: ExpoFileObject;
+  description?: string;
+  attachmentType?: string;
+  category?: string;
+  attachmentId?: number;
+  thumbnailUrl?: string;
+  sourceUrl?: string;
+  entityType?: EntityType; // Optional, for upload context
+};
+
+export type ExpoFileObject = {
+  uri: string;
+  name: string;
+  type: string;
+};
+
+export interface Assessment {
+  assessmentID: number;
+  taxableUnitID: number;
+  taxYear: number;
+  annualValue: number;
+  taxRate: number;
+  annualTaxAmount: number;
+  assessmentDate: string; // ISO 8601 string format for LocalDateTime
+
+  arrears?: Arrears[];
+}
+
+export interface Arrears {
+  arrearsID: number;
+  assessmentId: number;
+  dueQuarter: number;
+  originalDueAmount: number;
+  outstandingBalance: number;
+  surchargeAccrued?: number | null;
+  recoveryStatus: string;
+  assessment: Assessment;
+}
+
+export interface TaxableUnit {
+  taxableUnitID: number;
+  landParcelId: number;
+  unitReference: string;
+  unitType: string;
+  floorAreaSqm?: number; // Optional property
+  isActive: boolean;
+
+  assessments?: Assessment[];
+}
+
+export interface LandParcel {
+  landParcelID: number;
+  assessmentNo: string;
+  streetAddress: string;
+  gnDivision: string;
+  wardNo: string;
+  deedAbstractRef: string;
+  surveyPlanNo: string;
+  dateRegistered: string; // ISO 8601 string format for LocalDateTime
+
+  taxableUnits?: TaxableUnit[];
+}
+
+export interface PaymentHistoryByResidentDto {
+  paymentId: string;
+  amount: number;
+  date: string; // ISO 8601 string format
+  description: string;
+
+  taxableUnits?: TaxableUnitPaymentHistoryDto[];
+}
+
+export interface TaxableUnitPaymentHistoryDto {
+  taxableUnitId: number;
+  unitReference: string;
+  unitType: string;
+  payments: PaymentDetailDto[];
+}
+
+export interface PaymentDetailDto {
+  paymentId: number;
+  assessmentId: number;
+  taxYear: number;
+  paymentDate: string; // ISO 8601 string format for LocalDateTime
+  quarter?: number; // Optional property
+  amountPaid: number;
+  discountApplied?: number; // Optional property
+  surchargeApplied?: number; // Optional property
+  paymentMethod: string;
+  receiptNumber: string;
+}
+
+export interface QuarterlyTaxByResidentDto {
+  landParcelID: number;
+  streetAddress: string;
+  taxableUnits: TaxableUnitQuarterlyTaxDto[];
+}
+
+export interface TaxableUnitQuarterlyTaxDto {
+  taxableUnitID: number;
+  unitReference: string;
+  unitType: string;
+  quarterlyTaxes: QuarterlyTaxDetailDto[];
+}
+
+export interface QuarterlyTaxDetailDto {
+  taxYear: number;
+  quarter: number;
+  quarterName: string; // e.g., "Q1 2025", "Q4 2025"
+  quarterlyTaxAmount: number;
+  discountAmount?: number; // 10% discount if applicable
+  amountDue: number; // Final amount after discount
+  isDiscountApplicable: boolean;
+  discountDeadline?: string; // ISO 8601 string format for DateTime
+  isPaid: boolean;
+  paidDate?: string; // ISO 8601 string format for DateTime
+}
+
+// Arrears response structure from API
+export interface TaxableUnitWithArrears {
+  taxableUnitID: number;
+  unitReference: string;
+  unitType: string;
+  arrears: Arrears[];
+}
+
+export interface LandParcelWithArrears {
+  landParcelID: number;
+  streetAddress: string;
+  taxableUnits: TaxableUnitWithArrears[];
+}

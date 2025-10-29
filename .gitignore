@@ -36,4 +36,28 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# Android build artifacts and generated files
+android/app/build/
+android/app/src/main/res/drawable-*/
+android/app/src/main/assets/
+android/build/
+android/.gradle/
+android/local.properties
+android/app/release/
+android/app/debug/
+*.apk
+*.aab
+
+# iOS build artifacts (future proofing)
+ios/build/
+ios/Pods/
+ios/*.xcworkspace/xcuserdata/
+ios/*.xcodeproj/xcuserdata/
+ios/*.xcodeproj/project.xcworkspace/xcuserdata/
+ios/fastlane/report.xml
+ios/fastlane/Preview.html
+ios/fastlane/screenshots/
+ios/fastlane/test_output/
+*.ipa
+
 app-example

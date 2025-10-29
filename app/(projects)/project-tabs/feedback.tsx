@@ -1,5 +1,5 @@
 import { CommentSection } from "@/components/CommentSection";
-import { EntityType } from "@/types";
+import { EntityType } from "@/enums/enum";
 import React from "react";
 import { Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";

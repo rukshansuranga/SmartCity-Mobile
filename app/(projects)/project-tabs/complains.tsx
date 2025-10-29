@@ -1,7 +1,7 @@
 import { getProjectComplainsByProjectId } from "@/api/complainAction";
-import { CommentModal } from "@/components/CommentModal";
-import { WorkpackageStatus } from "@/enums/enum";
-import { EntityType, ProjectComplain } from "@/types";
+import CommentManager from "@/components/CommentManager";
+import { EntityType, WorkpackageStatus } from "@/enums/enum";
+import { ProjectComplain } from "@/types";
 import React, { useCallback, useEffect, useState } from "react";
 import { FlatList, Modal, Text, View } from "react-native";
 import {
@@ -28,9 +28,7 @@ export default function Complains() {
   const currentProjectId = appStore((state) => state.currentProjectId);
   const [complains, setComplains] = useState<ProjectComplain[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedComplain, setSelectedComplain] =
-    useState<ProjectComplain | null>(null);
-  const [isCommentsModalVisible, setIsCommentsModalVisible] = useState(false);
+  // CommentManager handles modal state
   const [isAddComplainModalVisible, setIsAddComplainModalVisible] =
     useState(false);
 
@@ -105,11 +103,6 @@ export default function Complains() {
     }
   }
 
-  function commentClickHandle(item: ProjectComplain) {
-    setSelectedComplain(item);
-    setIsCommentsModalVisible(true);
-  }
-
   function handleAddComplain() {
     setIsAddComplainModalVisible(true);
   }
@@ -118,11 +111,6 @@ export default function Complains() {
     setIsAddComplainModalVisible(false);
     // Refresh the complains list after adding a new complain
     fetchProjectComplains();
-  }
-
-  function handleCloseCommentsModal() {
-    setIsCommentsModalVisible(false);
-    setSelectedComplain(null);
   }
 
   function formatDate(dateString?: string): string {
@@ -184,12 +172,11 @@ export default function Complains() {
                   {item.client.firstName} {item.client.lastName}
                 </Text>
               )}
-              {/* Comments button - opens modal to manage comments for this specific complain */}
-              <IconButton
-                icon="comment"
-                iconColor="#38a3a5"
-                size={20}
-                onPress={() => commentClickHandle(item)}
+              {/* Use CommentManager for comments */}
+              <CommentManager
+                entityId={item.complainId?.toString()}
+                entityType={EntityType.ProjectComplain}
+                isPrivate={false}
               />
             </View>
           </View>
@@ -260,15 +247,6 @@ export default function Complains() {
             )}
           </View>
         </View>
-
-        {/* Comments Modal - for managing comments on a specific project complain */}
-        <CommentModal
-          visible={isCommentsModalVisible}
-          onClose={handleCloseCommentsModal}
-          entityId={selectedComplain?.complainId?.toString() || ""}
-          entityType={EntityType.ProjectComplain}
-          isPrivate={false}
-        />
 
         {/* Add Project Complain Modal - for creating new project complains */}
         <Modal

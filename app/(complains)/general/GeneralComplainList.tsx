@@ -2,8 +2,9 @@ import {
   deleteGeneralComplain,
   GetGeneralComplainPaging,
 } from "@/api/complainAction";
-import { CommentModal } from "@/components/CommentModal";
-import { EntityType } from "@/types";
+
+import CommentManager from "@/components/CommentManager";
+import { useAuthStore } from "@/stores/authStore";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { FlatList, Text, View } from "react-native";
@@ -18,41 +19,202 @@ import {
   MD2Colors,
 } from "react-native-paper";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { ComplainStatus, EntityType } from "../../../enums/enum";
 
 const pageSize = 10;
+
+// Refactored ComplainItem component
+function ComplainItem({ item, router, deletePrivateComplainHandler = null }) {
+  const userInfo = useAuthStore((state) => state.userInfo);
+  const isOwner = userInfo && item.clientId && userInfo.id === item.clientId;
+  const hasTicket = item?.ticketPackages && item.ticketPackages.length > 0;
+
+  // Extract ticket info if present
+  const ticketInfo = hasTicket
+    ? item.ticketPackages.map((ticket, idx) => (
+        <View
+          key={ticket?.ticket?.id || ticket?.ticketId || idx}
+          style={{ marginBottom: 2 }}
+        >
+          <Text className="text-[#22577a] text-xs font-bold">
+            Ticket: {ticket?.ticket?.subject || "-"} (
+            {ticket?.ticket?.status || "-"})
+          </Text>
+        </View>
+      ))
+    : null;
+
+  return (
+    <Card
+      className="mt-2 border border-[#38a3a5] bg-[#c7f9cc]"
+      onPress={() =>
+        router.push({
+          pathname: "/(complains)/general/ManageGeneralComplain",
+          params: { complainId: item.complainId },
+        })
+      }
+    >
+      <View className="flex mx-5 gap-4 p-4">
+        <View className="flex-row items-center gap-4 mb-2">
+          <Badge
+            size={30}
+            style={{ backgroundColor: "#38a3a5", color: "#fff" }}
+          >
+            {item.complainId}
+          </Badge>
+          <Text className="text-[#22577a] font-bold text-base flex-1">
+            {item.subject}
+          </Text>
+        </View>
+        <View className="flex-row gap-6 mb-1">
+          <Text className="text-[#38a3a5] text-xs">
+            Created:{" "}
+            {item.createdAt
+              ? new Date(item.createdAt).toLocaleDateString()
+              : "-"}
+          </Text>
+          <Text className="text-[#38a3a5] text-xs">
+            Status: {ComplainStatus[item.status] || "-"}
+          </Text>
+        </View>
+        {hasTicket && <View className="mb-1">{ticketInfo}</View>}
+        <View className="flex-row gap-2 mt-2 items-center">
+          <CommentManager
+            entityId={item.complainId?.toString()}
+            entityType={EntityType.GeneralComplain}
+          />
+          {isOwner && !hasTicket && (
+            <>
+              <IconButton
+                icon="pencil"
+                iconColor="#38a3a5"
+                size={24}
+                style={{ backgroundColor: "#c7f9cc" }}
+                onPress={(e) => {
+                  e.stopPropagation && e.stopPropagation();
+                  router.push({
+                    pathname: "/(complains)/general/ManageGeneralComplain",
+                    params: { complainId: item.complainId },
+                  });
+                }}
+              />
+              {deletePrivateComplainHandler && (
+                <IconButton
+                  icon="delete"
+                  iconColor="#22577a"
+                  size={24}
+                  style={{ backgroundColor: "#57cc99" }}
+                  onPress={(e) => {
+                    e.stopPropagation && e.stopPropagation();
+                    deletePrivateComplainHandler(item);
+                  }}
+                />
+              )}
+            </>
+          )}
+        </View>
+      </View>
+    </Card>
+  );
+}
+
+// PrivateList component
+function PrivateList({
+  data,
+  isLoading,
+  router,
+  deletePrivateComplainHandler,
+}) {
+  if (isLoading) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator animating={true} color={MD2Colors.blue500} />
+      </View>
+    );
+  }
+  return (
+    <>
+      {data.length === 0 ? (
+        <Card className="w-full h-1/3 justify-center items-center mt-4 bg-[#80ed99]">
+          <Text className="text-[#22577a]">No Complains Found</Text>
+        </Card>
+      ) : (
+        <FlatList
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingTop: 8, paddingBottom: 16 }}
+          data={data}
+          renderItem={({ item }) => (
+            <ComplainItem
+              item={item}
+              isPrivate={true}
+              router={router}
+              deletePrivateComplainHandler={deletePrivateComplainHandler}
+            />
+          )}
+          keyExtractor={(item) => item.complainId}
+        />
+      )}
+    </>
+  );
+}
+
+// PublicList component
+function PublicList({ data, isLoading, router }) {
+  if (isLoading) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator animating={true} color={MD2Colors.blue500} />
+      </View>
+    );
+  }
+  return (
+    <>
+      {data.length === 0 ? (
+        <Card className="w-full h-1/3 justify-center items-center mt-4 bg-[#80ed99]">
+          <Text className="text-[#22577a]">No Complains Found</Text>
+        </Card>
+      ) : (
+        <FlatList
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingTop: 8, paddingBottom: 16 }}
+          data={data}
+          renderItem={({ item }) => (
+            <ComplainItem item={item} isPrivate={false} router={router} />
+          )}
+          keyExtractor={(item) => item.complainId}
+        />
+      )}
+    </>
+  );
+}
 
 export default function GeneralComplainList() {
   const router = useRouter();
   const params = useLocalSearchParams();
-
   const [isPrivate, setIsPrivate] = useState(() => {
-    if (params.isPrivate !== undefined) {
+    if (params && params.isPrivate) {
       return params.isPrivate === "true";
     }
     return false;
   });
-
-  console.log("isPrivate", isPrivate, params.isPrivate);
-
-  const [selectedGeneralComplain, setSelectedGeneralComplain] = useState(null);
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
+
+  console.log("Initial isPrivate from params:", params?.isPrivate, isPrivate);
 
   useEffect(() => {
-    if (params?.isPrivate !== undefined) {
-      fetchData(params.isPrivate === "true");
-    } else {
-      fetchData();
+    // If navigation param changes, update isPrivate state
+    if (params && typeof params.isPrivate === "string") {
+      setIsPrivate(params.isPrivate === "true");
     }
-  }, [params?.random, params?.isPrivate]);
-
-  // Fetch data when modal becomes visible
-  useEffect(() => {
-    if (modalVisible) {
-      fetchData(isPrivate);
-    }
-  }, [modalVisible, isPrivate]);
+    // Always fetch data when isPrivate or params.random changes
+    fetchData(
+      params && typeof params.isPrivate === "string"
+        ? params.isPrivate === "true"
+        : isPrivate
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params?.isPrivate, params?.random]);
 
   async function fetchData(isPrivate = false) {
     setIsLoading(true);
@@ -71,7 +233,6 @@ export default function GeneralComplainList() {
     } catch (error) {
       console.error("Error fetching general complains:", error);
       setData([]);
-      // Toast error is already shown by fetchWrapper
     } finally {
       setIsLoading(false);
     }
@@ -89,21 +250,6 @@ export default function GeneralComplainList() {
     fetchData(false);
   }
 
-  function commentClickHandle(item) {
-    setModalVisible(!modalVisible);
-    setSelectedGeneralComplain(item);
-  }
-
-  function modalCloseHandler() {
-    console.log("modal closed");
-    setModalVisible(false);
-  }
-
-  // async function addCommentHandler(comment) {
-  //   console.log("Add comment", comment);
-  //   await addComment(comment);
-  // }
-
   async function deletePrivateComplainHandler(item) {
     try {
       const deleteResult = await deleteGeneralComplain(item.complainId);
@@ -115,8 +261,6 @@ export default function GeneralComplainList() {
         });
         return;
       }
-      console.log("Complain deleted successfully");
-
       const newData = await GetGeneralComplainPaging(1, isPrivate, pageSize);
       if (!newData.isSuccess) {
         Toast.show({
@@ -127,109 +271,12 @@ export default function GeneralComplainList() {
         return;
       }
       setData(newData.data || []);
-
-      console.log("res general complain", newData.data);
     } catch (error) {
       console.error("Error deleting complain:", error);
-      // Toast error is already shown by fetchWrapper
     }
   }
 
-  console.log("comment list", selectedGeneralComplain?.comments);
-
-  function itemRender({ item }) {
-    // Color scheme
-    // #22577a, #38a3a5, #57cc99, #80ed99, #c7f9cc
-    if (isPrivate) {
-      return (
-        <Card className="w-full mt-2 border border-[#57cc99] bg-[#80ed99]">
-          <View className="flex-row items-center mx-5 p-4">
-            <View className="w-10/12 gap-4">
-              <View className="flex-row gap-6 items-center">
-                <Badge
-                  size={30}
-                  style={{ backgroundColor: "#38a3a5", color: "#fff" }}
-                >
-                  {item.complainId}
-                </Badge>
-                <Text className="text-[#22577a] font-bold text-base">
-                  {item.subject}
-                </Text>
-              </View>
-              <View className="flex-row justify-between items-center mt-2">
-                <View className="flex-row gap-2">
-                  {item?.ticketPackages?.map((ticket, idx) => (
-                    <Text key={idx} className="text-[#22577a] text-xs">
-                      {ticket?.ticket?.subject}
-                    </Text>
-                  ))}
-                </View>
-                <Text className="text-[#38a3a5] text-xs">2026-1-2</Text>
-              </View>
-            </View>
-            {item?.ticketPackages?.length === 0 ? (
-              <View className="flex-row justify-end w-2/12">
-                <IconButton
-                  icon="delete"
-                  iconColor="#22577a"
-                  size={24}
-                  style={{ backgroundColor: "#57cc99" }}
-                  onPress={() => deletePrivateComplainHandler(item)}
-                />
-              </View>
-            ) : null}
-          </View>
-        </Card>
-      );
-    }
-    // Public
-    return (
-      <Card className="mt-2 border border-[#38a3a5] bg-[#c7f9cc]">
-        <View className="flex mx-5 gap-6 p-4">
-          <View className="flex-row justify-between items-center">
-            <Badge
-              size={30}
-              style={{ backgroundColor: "#38a3a5", color: "#fff" }}
-            >
-              {item.complainId}
-            </Badge>
-            <Text className="text-[#22577a] font-bold text-base">
-              {item.subject}
-            </Text>
-          </View>
-          <View className="flex-row justify-between items-center mt-2">
-            <View className="flex-row gap-2">
-              {item?.ticketPackages?.map((ticket) => (
-                <Text
-                  key={ticket?.ticket?.id || ticket?.ticketId}
-                  className="text-[#22577a] text-xs"
-                >
-                  {ticket?.ticket?.subject}
-                </Text>
-              ))}
-            </View>
-            <Text className="text-[#38a3a5] font-bold">
-              {item?.client?.name}
-            </Text>
-            <IconButton
-              icon="comment"
-              iconColor="#38a3a5"
-              size={20}
-              onPress={() => commentClickHandle(item)}
-            />
-          </View>
-        </View>
-      </Card>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <View className="flex-1 justify-center items-center">
-        <ActivityIndicator animating={true} color={MD2Colors.blue500} />
-      </View>
-    );
-  }
+  console.log("Rendering GeneralComplainList with isPrivate:", isPrivate);
 
   return (
     <SafeAreaProvider>
@@ -248,33 +295,34 @@ export default function GeneralComplainList() {
                   style={{ backgroundColor: "#38a3a5" }}
                   labelStyle={{ color: "#fff", fontWeight: "bold" }}
                   onPress={() =>
-                    router.push("/(complains)/general/AddGeneralComplain")
+                    router.push({
+                      pathname: "/(complains)/general/ManageGeneralComplain",
+                      params: { isPrivate: isPrivate ? "true" : "false" },
+                    })
                   }
                 >
                   Add
                 </Button>
               </View>
             </View>
-            {data.length === 0 && !isLoading ? (
-              <Card className="w-full h-1/3 justify-center items-center mt-4 bg-[#80ed99]">
-                <Text className="text-[#22577a]">No Complains Found</Text>
-              </Card>
-            ) : (
-              <FlatList
-                style={{ flex: 1 }}
-                contentContainerStyle={{ paddingTop: 8, paddingBottom: 16 }}
+            {isPrivate ? (
+              <PrivateList
                 data={data}
-                renderItem={itemRender}
-                keyExtractor={(item, index) => item.complainId}
+                isLoading={isLoading}
+                router={router}
+                deletePrivateComplainHandler={deletePrivateComplainHandler}
               />
+            ) : (
+              <PublicList data={data} isLoading={isLoading} router={router} />
             )}
           </View>
           <View className="w-full h-20 justify-center bg-[#80ed99]">
             <View className="flex-row justify-center gap-3">
               <Button
-                {...(isPrivate
-                  ? { mode: "contained" }
-                  : { mode: "contained-tonal" })}
+                // {...(isPrivate
+                //   ? { mode: "contained" }
+                //   : { mode: "contained-tonal" })}
+                mode="contained"
                 style={{
                   backgroundColor: isPrivate ? "#22577a" : "#57cc99",
                 }}
@@ -284,9 +332,10 @@ export default function GeneralComplainList() {
                 Private
               </Button>
               <Button
-                {...(isPrivate
-                  ? { mode: "contained-tonal" }
-                  : { mode: "contained" })}
+                // {...(isPrivate
+                //   ? { mode: "contained-tonal" }
+                //   : { mode: "contained" })}
+                mode="contained"
                 style={{
                   backgroundColor: !isPrivate ? "#22577a" : "#57cc99",
                 }}
@@ -298,13 +347,6 @@ export default function GeneralComplainList() {
             </View>
           </View>
         </View>
-        <CommentModal
-          visible={modalVisible}
-          onClose={() => setModalVisible(false)}
-          entityId={selectedGeneralComplain?.complainId?.toString() || ""}
-          entityType={EntityType.GeneralComplain}
-          isPrivate={isPrivate}
-        />
       </SafeAreaView>
     </SafeAreaProvider>
   );

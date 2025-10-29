@@ -2,13 +2,15 @@
 import "react-native-get-random-values";
 // prettier-ignore-end
 
+import { ROUTES } from "@/constants/routes";
 import "@/global.css";
-import { SplashScreen, Stack, useRouter } from "expo-router";
+import { Link, SplashScreen, Stack, useRouter } from "expo-router";
 
 import { useAuthStore } from "@/stores/authStore";
 // import { makeRedirectUri, useAuthRequest, useAutoDiscovery } from "expo-auth-session";
 import { getUnreadNotificationCount } from "@/api/notificationAction";
 import { appStore } from "@/stores/appStore";
+import { StripeProvider } from "@stripe/stripe-react-native";
 import { useEffect } from "react";
 import { Image, Text, View } from "react-native";
 import { Badge, IconButton } from "react-native-paper";
@@ -23,12 +25,33 @@ function MinimalHeader({
   userName,
   notificationCount,
 }) {
-  const title =
-    options.title ||
-    (typeof options.headerTitle === "string"
-      ? options.headerTitle
-      : undefined) ||
-    (route && route.name ? route.name : "");
+  // Extract the base route name from nested routes
+  const getRouteTitle = () => {
+    if (options.title) return options.title;
+    if (typeof options.headerTitle === "string") return options.headerTitle;
+
+    // Map route names to proper titles
+    const routeName = route?.name || "";
+    const titleMap = {
+      home: "Home",
+      "(adviser)/index": "AI Assistant",
+      "(adviser)": "AI Assistant",
+      "(complains)/index": "Complains",
+      "(complains)": "Complains",
+      "(garbage)/index": "Garbage",
+      "(garbage)": "Garbage",
+      "(projects)/index": "Projects",
+      "(projects)": "Projects",
+      "(tax)/index": "Tax",
+      "(tax)": "Tax",
+      editUser: "Edit User",
+      "(notification)/NotificationList": "Notifications",
+    };
+
+    return titleMap[routeName] || routeName;
+  };
+
+  const title = getRouteTitle();
   const router = useRouter();
 
   return (
@@ -37,30 +60,8 @@ function MinimalHeader({
         <Text className="text-white text-xl font-bold tracking-wide drop-shadow-md">
           {title}
         </Text>
-        {/* Uncomment to show user name */}
-        {/* {userName && (
-          <Text className="text-white text-lg font-bold ml-2">Hi, {userName}</Text>
-        )} */}
       </View>
       <View className="flex-row items-center gap-1">
-        <IconButton
-          icon="logout"
-          size={24}
-          onPress={logOut}
-          style={{
-            backgroundColor: "#57cc99",
-            borderRadius: 12,
-          }}
-        />
-        <IconButton
-          icon="home"
-          size={24}
-          onPress={() => router.replace("/")}
-          style={{
-            backgroundColor: "#57cc99",
-            borderRadius: 12,
-          }}
-        />
         <View className="relative flex items-center justify-center">
           <IconButton
             icon={() => (
@@ -71,7 +72,7 @@ function MinimalHeader({
               />
             )}
             size={24}
-            onPress={() => router.push("/(notification)/NotificationList")}
+            onPress={() => router.push(ROUTES.NOTIFICATIONS)}
             style={{
               backgroundColor: "#57cc99",
               borderRadius: 12,
@@ -87,6 +88,25 @@ function MinimalHeader({
             </Badge>
           )}
         </View>
+        <Link href="/home" asChild>
+          <IconButton
+            icon="home"
+            size={24}
+            style={{
+              backgroundColor: "#57cc99",
+              borderRadius: 12,
+            }}
+          />
+        </Link>
+        <IconButton
+          icon="logout"
+          size={24}
+          onPress={logOut}
+          style={{
+            backgroundColor: "#57cc99",
+            borderRadius: 12,
+          }}
+        />
       </View>
     </View>
   );
@@ -95,6 +115,8 @@ function MinimalHeader({
 export default function RootLayout() {
   const { isSignedIn, _hasHydrated, accessToken, idToken, userInfo, logOut } =
     useAuthStore();
+
+  console.log("isSignedIn in RootLayout:", isSignedIn);
 
   const { updateNotificationCount, unreadNotificationCount } = appStore();
 
@@ -153,45 +175,53 @@ export default function RootLayout() {
     }
   }
 
-  //console.log("auth store1:", userInfo, accessToken);
-
-  // console.log("isSignedIn:", isSignedIn);
-  // console.log("accessToken:", accessToken);
-  // console.log("userInfo:", userInfo);
-
   return (
-    <SafeAreaProvider>
-      <SafeAreaView className="flex-1">
-        <Stack
-          screenOptions={{
-            header: (props) => (
-              <MinimalHeader
-                {...props}
-                logOut={handleLogout}
-                userName={userInfo?.given_name}
-                notificationCount={unreadNotificationCount}
-              />
-            ), // Use custom header
-          }}
-        >
-          <Stack.Protected guard={!isSignedIn}>
-            <Stack.Screen name="signIn" />
-          </Stack.Protected>
+    <StripeProvider
+      publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""}
+      merchantIdentifier="merchant.com.smartcity"
+    >
+      <SafeAreaProvider>
+        <SafeAreaView className="flex-1">
+          <Stack
+            screenOptions={{
+              header: (props) => (
+                <MinimalHeader
+                  {...props}
+                  logOut={handleLogout}
+                  userName={userInfo?.given_name}
+                  notificationCount={unreadNotificationCount}
+                />
+              ), // Use custom header
+            }}
+          >
+            <Stack.Protected guard={!isSignedIn}>
+              {/* <Stack.Screen name="test" options={{ title: "TEST" }} /> */}
+              <Stack.Screen name="signIn" />
+            </Stack.Protected>
 
-          <Stack.Protected guard={isSignedIn}>
-            <Stack.Screen name="index" options={{ title: "Home" }} />
-            <Stack.Screen
-              name="(notification)/NotificationList"
-              options={{ headerShown: true, title: "Notifications" }}
-            />
-            <Stack.Screen name="(complains)" options={{ title: "Complains" }} />
-            <Stack.Screen name="(garbage)" options={{ title: "Garbage" }} />
-            <Stack.Screen name="(projects)" options={{ title: "Projects" }} />
-            <Stack.Screen name="editUser" options={{ title: "Edit User" }} />
-          </Stack.Protected>
-        </Stack>
-        <Toast />
-      </SafeAreaView>
-    </SafeAreaProvider>
+            <Stack.Protected guard={isSignedIn}>
+              <Stack.Screen name="home" options={{ title: "Home" }} />
+              <Stack.Screen
+                name="(notification)/NotificationList"
+                options={{ headerShown: true, title: "Notifications" }}
+              />
+              <Stack.Screen
+                name="(complains)"
+                options={{ title: "Complains" }}
+              />
+              <Stack.Screen name="(garbage)" options={{ title: "Garbage" }} />
+              <Stack.Screen name="(projects)" options={{ title: "Projects" }} />
+              <Stack.Screen
+                name="(adviser)"
+                options={{ title: "AI Assistant" }}
+              />
+              <Stack.Screen name="(tax)" options={{ headerShown: false }} />
+              <Stack.Screen name="editUser" options={{ title: "Edit User" }} />
+            </Stack.Protected>
+          </Stack>
+          <Toast />
+        </SafeAreaView>
+      </SafeAreaProvider>
+    </StripeProvider>
   );
 }

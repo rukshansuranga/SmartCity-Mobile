@@ -1,6 +1,7 @@
 import {
   addRating,
   getNotifications,
+  getUnreadNotificationCount,
   readNotification,
 } from "@/api/notificationAction";
 import Rating from "@/components/Rating";
@@ -8,8 +9,10 @@ import { useAuthStore } from "@/stores/authStore";
 import { useEffect, useState } from "react";
 import { FlatList, Image, Modal, Pressable, Text, View } from "react-native";
 import { Button, Card, IconButton, TextInput } from "react-native-paper";
+import { appStore } from "../../stores/appStore";
 
 const iconMap = {
+  GeneralComplain: require("@/assets/icons/GeneralComplain.png"),
   LightPostComplain: require("@/assets/icons/LightPostComplain.png"),
   ProjectComplain: require("@/assets/icons/ProjectComplain.png"),
   Notification: require("@/assets/icons/notification1.png"), // Make sure this matches your new PNG filename
@@ -18,6 +21,7 @@ const iconMap = {
 
 export default function NotificationList() {
   const { userInfo } = useAuthStore();
+  const { updateNotificationCount, unreadNotificationCount } = appStore();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
@@ -28,6 +32,7 @@ export default function NotificationList() {
 
   useEffect(() => {
     fetchNotifications();
+    fetchUnreadNotificationCount();
   }, [userInfo.sub]);
 
   async function fetchNotifications() {
@@ -46,6 +51,26 @@ export default function NotificationList() {
       // Toast error is already shown by fetchWrapper
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function fetchUnreadNotificationCount() {
+    console.log("Fetching unread notification count...");
+    try {
+      const count = await getUnreadNotificationCount(userInfo.sub);
+      if (!count.isSuccess) {
+        console.error(
+          "Failed to fetch unread notification count:",
+          count.message
+        );
+        updateNotificationCount(0);
+        return;
+      }
+      updateNotificationCount(count.data || 0);
+    } catch (error) {
+      console.error("Error fetching unread notification count:", error);
+      updateNotificationCount(0);
+      // Toast error is already shown by fetchWrapper
     }
   }
 
@@ -134,7 +159,7 @@ export default function NotificationList() {
                         {item.subject}
                       </Text>
                       <Text
-                        className={`text-base ${item.isRead ? "" : "font-bold"} text-[#38a3a5]`}
+                        className={`text-base ${item.isRead ? "" : "font-bold"} text-[#38a3a5] mr-3`}
                       >
                         {item.message}
                       </Text>

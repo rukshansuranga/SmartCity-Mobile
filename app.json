@@ -18,6 +18,7 @@
       },
       "versionCode": 7,
       "edgeToEdgeEnabled": true,
+      "softwareKeyboardLayoutMode": "resize",
       "package": "com.rukshansuranga.smartcity",
       "config": {
         "googleMaps": {

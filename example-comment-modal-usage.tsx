@@ -1,5 +1,6 @@
 import { CommentModal } from "@/components/CommentModal";
-import { Comment, EntityType } from "@/types";
+import { EntityType } from "@/enums/enum";
+import { Comment } from "@/types";
 import React, { useState } from "react";
 import { Text, View } from "react-native";
 import { Button } from "react-native-paper";

@@ -32,19 +32,6 @@ export const useAuthStore = create(
         idToken: string;
         userInfo: any;
       }) => {
-        let safeUserInfo = token.userInfo;
-        try {
-          const userInfoString = JSON.stringify(token.userInfo);
-          if (userInfoString.length > 2048) {
-            // Store only minimal info if too large
-            safeUserInfo = {
-              id: token.userInfo?.id,
-              username: token.userInfo?.username,
-            };
-          }
-        } catch {
-          safeUserInfo = null;
-        }
         set((state) => {
           console.log("Logging in with token:", token);
           return {
@@ -52,7 +39,7 @@ export const useAuthStore = create(
             isSignedIn: true,
             accessToken: token.accessToken,
             idToken: token.idToken,
-            userInfo: safeUserInfo,
+            userInfo: token.userInfo,
           };
         });
       },
