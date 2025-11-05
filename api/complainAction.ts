@@ -6,7 +6,7 @@ export interface ProjectComplainPostRequest {
   subject: string;
   detail?: string;
   projectId: string;
-  clientId?: string;
+  residentId?: string;
 }
 
 export interface ProjectComplainUpdateRequest {

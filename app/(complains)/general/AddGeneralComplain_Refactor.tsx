@@ -57,7 +57,7 @@ export default function AddGeneralComplain() {
     try {
       setUploading(true);
       const complain = {
-        clientId: userInfo?.sub,
+        residentId: userInfo?.sub,
         subject: data.title,
         detail: data.description,
         isPrivate: data.isPrivate,

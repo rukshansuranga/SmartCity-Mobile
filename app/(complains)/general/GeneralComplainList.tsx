@@ -26,7 +26,8 @@ const pageSize = 10;
 // Refactored ComplainItem component
 function ComplainItem({ item, router, deletePrivateComplainHandler = null }) {
   const userInfo = useAuthStore((state) => state.userInfo);
-  const isOwner = userInfo && item.clientId && userInfo.id === item.clientId;
+  const isOwner =
+    userInfo && item.residentId && userInfo.sub === item.residentId;
   const hasTicket = item?.ticketPackages && item.ticketPackages.length > 0;
 
   // Extract ticket info if present

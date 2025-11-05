@@ -1,4 +1,5 @@
 import { ROUTES } from "@/constants/routes";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Text, View } from "react-native";
 import { Button } from "react-native-paper";
@@ -33,6 +34,24 @@ export default function Index() {
           </Button>
         </View>
       ))}
+
+      {/* Debug Button - Only show in development */}
+      {__DEV__ && (
+        <View className="flex justify-center items-center w-full rounded-xl shadow-md h-16 px-6 mt-4 bg-gray-800">
+          <Button
+            onPress={() => router.push("/debug")}
+            style={{ width: "100%", height: "100%" }}
+            contentStyle={{ height: "100%" }}
+          >
+            <View className="flex-row items-center justify-center gap-2">
+              <MaterialCommunityIcons name="bug" size={24} color="#fbbf24" />
+              <Text className="font-bold text-xl tracking-wide text-yellow-400">
+                Debug Auth Store
+              </Text>
+            </View>
+          </Button>
+        </View>
+      )}
     </View>
   );
 }

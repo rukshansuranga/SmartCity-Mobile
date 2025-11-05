@@ -9,6 +9,7 @@ import { Link, SplashScreen, Stack, useRouter } from "expo-router";
 import { useAuthStore } from "@/stores/authStore";
 // import { makeRedirectUri, useAuthRequest, useAutoDiscovery } from "expo-auth-session";
 import { getUnreadNotificationCount } from "@/api/notificationAction";
+import { validateAndRefreshToken } from "@/lib/tokenManager";
 import { appStore } from "@/stores/appStore";
 import { StripeProvider } from "@stripe/stripe-react-native";
 import { useEffect } from "react";
@@ -113,26 +114,71 @@ function MinimalHeader({
 }
 
 export default function RootLayout() {
-  const { isSignedIn, _hasHydrated, accessToken, idToken, userInfo, logOut } =
-    useAuthStore();
+  const {
+    isSignedIn,
+    _hasHydrated,
+    accessToken,
+    idToken,
+    userInfo,
+    selectedCouncil,
+    isTokenExpired,
+    logOut,
+  } = useAuthStore();
+
+  const router = useRouter();
 
   console.log("isSignedIn in RootLayout:", isSignedIn);
 
   const { updateNotificationCount, unreadNotificationCount } = appStore();
 
-  // Auth logic is handled in signIn.tsx
+  // Auth logic is handled in auth.tsx
 
   // https://zustand.docs.pmnd.rs/integrations/persisting-store-data#how-can-i-check-if-my-store-has-been-hydrated
   // Hide the splash screen after the store has been hydrated
 
   useEffect(() => {
-    if (_hasHydrated) {
-      SplashScreen.hideAsync();
-      if (isSignedIn && accessToken && userInfo) {
-        fetchUnreadNotificationCount();
+    const initializeApp = async () => {
+      if (!_hasHydrated) return;
+
+      console.log("[RootLayout] Store hydrated, initializing app...");
+      await SplashScreen.hideAsync();
+
+      // Check if user is signed in
+      if (!isSignedIn || !accessToken) {
+        console.log("[RootLayout] User not signed in");
+        return;
       }
-    }
-  }, [_hasHydrated]);
+
+      // Check if token is expired and try to refresh
+      if (isTokenExpired()) {
+        console.log("[RootLayout] Token expired, attempting refresh...");
+        const isValid = await validateAndRefreshToken();
+
+        if (!isValid) {
+          console.log("[RootLayout] Token refresh failed, logging out");
+          await logOut();
+          router.replace("/auth" as any);
+          return;
+        }
+        console.log("[RootLayout] Token refreshed successfully");
+      }
+
+      // Check if council is selected
+      if (!selectedCouncil) {
+        console.log("[RootLayout] No council selected, redirecting...");
+        router.replace("/selectCouncil" as any);
+        return;
+      }
+
+      // All checks passed, fetch notifications
+      if (userInfo) {
+        await fetchUnreadNotificationCount();
+      }
+    };
+
+    initializeApp();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [_hasHydrated, isSignedIn, accessToken, selectedCouncil]);
 
   // No useAuthRequest or response handling here
 
@@ -155,7 +201,7 @@ export default function RootLayout() {
     }
   }
 
-  async function fetchUnreadNotificationCount() {
+  const fetchUnreadNotificationCount = async () => {
     console.log("Fetching unread notification count...");
     try {
       const count = await getUnreadNotificationCount(userInfo.sub);
@@ -173,7 +219,7 @@ export default function RootLayout() {
       updateNotificationCount(0);
       // Toast error is already shown by fetchWrapper
     }
-  }
+  };
 
   return (
     <StripeProvider
@@ -194,12 +240,15 @@ export default function RootLayout() {
               ), // Use custom header
             }}
           >
+            <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Protected guard={!isSignedIn}>
-              {/* <Stack.Screen name="test" options={{ title: "TEST" }} /> */}
-              <Stack.Screen name="signIn" />
-            </Stack.Protected>
-
+              <Stack.Screen name="auth" options={{ headerShown: false }} />
+            </Stack.Protected>{" "}
             <Stack.Protected guard={isSignedIn}>
+              <Stack.Screen
+                name="selectCouncil"
+                options={{ headerShown: false, title: "Select Council" }}
+              />
               <Stack.Screen name="home" options={{ title: "Home" }} />
               <Stack.Screen
                 name="(notification)/NotificationList"

@@ -172,9 +172,12 @@ export default function EditUser() {
   };
 
   useEffect(() => {
-    fetchUser(userInfo?.preferred_username);
+    if (userInfo?.preferred_username) {
+      fetchUser(userInfo.preferred_username);
+    }
     // Reset the form when the component mounts or when the user data changes
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userInfo]);
 
   const fetchAdminToken = async () => {
     try {

@@ -21,14 +21,42 @@ export enum WorkpackageStatus {
   Close,
 }
 
-export type Client = {
-  clientId: string;
-  addressLine1?: string;
-  addressLine2?: string;
+export type Council = {
+  value: string;
+  label: string;
+};
+
+export type TokenPayload = {
+  access_token: string;
+  refresh_token: string;
+  id_token: string;
+  expires_in: number;
+  token_type: string;
+};
+
+export type KeycloakUserInfo = {
+  sub: string; // User ID
+  email_verified: boolean;
+  name: string; // Full name
+  mobile?: string;
+  councils: string[]; // Array of council names
+  preferred_username: string; // Username
+  given_name: string; // First name
+  family_name: string; // Last name
+  email: string;
+};
+
+export type Resident = {
+  residentId: string;
   firstName?: string;
   lastName?: string;
   mobile?: string;
+  addressLine1?: string;
+  addressLine2?: string;
   city?: string;
+  nic?: string;
+  ownerType?: string; // Individual, Company, Government, etc.
+  email?: string;
 };
 
 export type Complain = {
@@ -36,9 +64,9 @@ export type Complain = {
   subject: string;
   detail?: string;
   status?: WorkpackageStatus;
-  clientId?: string;
-  client: {
-    clientId?: string;
+  residentId?: string;
+  resident: {
+    residentId?: string;
     firstName?: string;
     lastName?: string;
     mobile?: string;
@@ -55,7 +83,7 @@ export type GeneralComplain = Complain & {
 export type ProjectComplain = Complain & {
   projectId: string;
   project?: {
-    id: number;
+    projectId: number;
     subject: string;
     description: string;
     status: ProjectStatus;
@@ -68,9 +96,9 @@ export type Comment = {
   entityType: EntityType;
   entityId: string;
   isPrivate?: boolean;
-  clientId?: string;
-  client?: {
-    clientId?: string;
+  residentId?: string;
+  resident?: {
+    residentId?: string;
     firstName?: string;
     lastName?: string;
     mobile?: string;
@@ -92,7 +120,7 @@ export type Notification = {
   id: number;
   subject: string;
   message?: string;
-  clientId: string;
+  residentId: string;
   status: NotificationStatus;
   type: NotificationType;
   complain: Complain;
@@ -100,7 +128,7 @@ export type Notification = {
 };
 
 export type Project = {
-  id: number;
+  projectId: number;
   subject: string;
   description: string;
   type: ProjectType;

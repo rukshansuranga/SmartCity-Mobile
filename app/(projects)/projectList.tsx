@@ -87,14 +87,19 @@ export default function ProjectList() {
   };
 
   const handleProjectPress = (project: Project) => {
+    console.log(
+      "Navigating to project details for ID:",
+      project,
+      project.projectId
+    );
     // Set current project in store for tabs to access
-    setCurrentProject(project.id.toString(), projectType as string);
+    setCurrentProject(project.projectId?.toString(), projectType as string);
 
     // Navigate to project detail tabs with the project ID
     router.push({
       pathname: "/project-tabs/project-details",
       params: {
-        projectId: project.id.toString(),
+        projectId: project.projectId?.toString(),
         projectType: projectType as string,
       },
     });
@@ -186,7 +191,7 @@ export default function ProjectList() {
                     nestedScrollEnabled={true}
                   >
                     {projects.map((item) => (
-                      <View key={item.id.toString()}>
+                      <View key={item.projectId?.toString()}>
                         {renderProjectItem({ item })}
                       </View>
                     ))}

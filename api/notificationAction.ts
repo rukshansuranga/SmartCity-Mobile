@@ -12,20 +12,20 @@ export async function addRating(rating: {
   complainId: number;
   rating: number;
   note: string;
-  clientId: string;
+  residentId: string;
   notificationId: number;
 }): Promise<ApiResponse<void>> {
   return fetchWrapper.post("notification/rating", rating);
 }
 
 export async function getNotifications(
-  clientId: number
+  residentId: string | number
 ): Promise<ApiResponse<Notification[]>> {
-  return fetchWrapper.get(`notification/client/${clientId}`);
+  return fetchWrapper.get(`notification/resident/${residentId}`);
 }
 
 export async function getUnreadNotificationCount(
-  clientId: number
+  residentId: string | number
 ): Promise<ApiResponse<number>> {
-  return fetchWrapper.get(`notification/unread/count/${clientId}`);
+  return fetchWrapper.get(`notification/unread/count/${residentId}`);
 }

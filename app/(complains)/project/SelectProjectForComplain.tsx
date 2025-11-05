@@ -76,7 +76,7 @@ export default function SelectProjectForComplain() {
 
   useEffect(() => {
     setSelectedProject(
-      projects.find((project) => project.id === selectedProjectId)
+      projects.find((project) => project.projectId === selectedProjectId)
     );
   }, [selectedProjectId]);
 
@@ -176,9 +176,9 @@ export default function SelectProjectForComplain() {
                     />
                     {projects?.map((project) => (
                       <Picker.Item
-                        key={project.id}
+                        key={project.projectId}
                         label={project.subject}
-                        value={project.id}
+                        value={project.projectId}
                       />
                     ))}
                   </Picker>

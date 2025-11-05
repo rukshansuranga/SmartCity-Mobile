@@ -52,37 +52,36 @@ const MediaPicker: React.FC<Props> = ({
       );
       await rec.startAsync();
       setRecording(rec);
-      Alert.alert("Recording...", "Tap OK to stop recording.", [
-        {
-          text: "OK",
-          onPress: async () => {
-            try {
-              await rec.stopAndUnloadAsync();
-              const uri = rec.getURI();
-              if (uri) {
-                const file = {
-                  uri,
-                  name: `Voice_${Date.now()}.m4a`,
-                  type: "audio/m4a",
-                };
-                onChange([
-                  ...attachments,
-                  {
-                    file,
-                    attachmentType: "Audio",
-                  },
-                ]);
-              }
-              setRecording(null);
-            } catch {
-              Alert.alert("Error", "Failed to save audio recording.");
-              setRecording(null);
-            }
-          },
-        },
-      ]);
     } catch {
       Alert.alert("Error", "Failed to start audio recording.");
+      setRecording(null);
+    }
+  };
+
+  // Stop recording and save
+  const stopRecording = async () => {
+    if (!recording) return;
+
+    try {
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      if (uri) {
+        const file = {
+          uri,
+          name: `Voice_${Date.now()}.m4a`,
+          type: "audio/m4a",
+        };
+        onChange([
+          ...attachments,
+          {
+            file,
+            attachmentType: "Audio",
+          },
+        ]);
+      }
+      setRecording(null);
+    } catch {
+      Alert.alert("Error", "Failed to save audio recording.");
       setRecording(null);
     }
   };
@@ -122,7 +121,9 @@ const MediaPicker: React.FC<Props> = ({
     }
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Videos,
-      quality: 1,
+      quality: 0.7, // Reduced quality for better compatibility
+      videoMaxDuration: 60, // Limit to 60 seconds
+      videoExportPreset: ImagePicker.VideoExportPreset.MediumQuality,
     });
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const asset = result.assets[0];
@@ -285,10 +286,28 @@ const MediaPicker: React.FC<Props> = ({
     return item.attachmentId ? item.sourceUrl : item.file.uri;
   }
 
-  console.log("🚀 [DEBUG] attachments:", attachments);
-
   return (
     <View className="my-2">
+      {/* Recording Indicator */}
+      {recording && (
+        <View className="bg-[#ff4444] rounded-lg p-3 mb-3 flex-row items-center">
+          <MaterialIcons name="fiber-manual-record" size={24} color="#fff" />
+          <Text className="text-white font-bold ml-2 flex-1">
+            Recording audio...
+          </Text>
+          <TouchableOpacity
+            className="bg-white rounded-lg px-4 py-2 ml-2"
+            onPress={stopRecording}
+            accessibilityLabel="Stop recording"
+          >
+            <View className="flex-row items-center">
+              <MaterialIcons name="stop" size={20} color="#ff4444" />
+              <Text className="text-[#ff4444] font-bold ml-1">Stop</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+      )}
+
       <View className="flex-row mb-2 pl-2 flex-wrap justify-start gap-2">
         <TouchableOpacity
           className={`max-w-[110px] bg-[#38a3a5] rounded-xl mr-1.5 shadow-md items-center py-2 px-3 ${attachments.length >= maxAttachments ? "opacity-50" : ""}`}
@@ -319,7 +338,7 @@ const MediaPicker: React.FC<Props> = ({
         </TouchableOpacity>
         {/* Video Buttons */}
         <TouchableOpacity
-          className="max-w-[110px] bg-[#f7b801] rounded-xl ml-1.5 shadow-md items-center py-2 px-3"
+          className={`max-w-[110px] bg-[#f7b801] rounded-xl ml-1.5 shadow-md items-center py-2 px-3 ${attachments.length >= maxAttachments ? "opacity-50" : ""}`}
           onPress={pickVideo}
         >
           <View className="flex-row items-center justify-center">
@@ -327,7 +346,7 @@ const MediaPicker: React.FC<Props> = ({
           </View>
         </TouchableOpacity>
         <TouchableOpacity
-          className="max-w-[110px] bg-[#f95d6a] rounded-xl ml-1.5 shadow-md items-center py-2 px-3"
+          className={`max-w-[110px] bg-[#f95d6a] rounded-xl ml-1.5 shadow-md items-center py-2 px-3 ${attachments.length >= maxAttachments ? "opacity-50" : ""}`}
           onPress={captureVideo}
         >
           <View className="flex-row items-center justify-center">
@@ -356,68 +375,6 @@ const MediaPicker: React.FC<Props> = ({
         renderItem={({ item, index }) => (
           <View className="mb-2 mt-1 flex-row items-center relative mr-2 bg-[#c7f9cc] border border-[#57cc99] rounded-lg p-2">
             <AttachmentThumbnail item={item} />
-            {/* Voice Attachments Row */}
-            {attachments.some((att) => att.attachmentType === "Audio") && (
-              <View className="mt-2">
-                <Text className="text-[#22577a] font-bold mb-2">
-                  Voice Notes
-                </Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  style={{ flexDirection: "row" }}
-                >
-                  {attachments
-                    .filter((att) => att.attachmentType === "Audio")
-                    .map((item, idx) => (
-                      <View
-                        key={idx}
-                        className="flex-col items-center mr-4 bg-[#e0e7ff] rounded-lg p-2 min-w-[100px]"
-                      >
-                        <TouchableOpacity
-                          onPress={async () => {
-                            try {
-                              const { sound } = await Audio.Sound.createAsync({
-                                uri: item.file.uri,
-                              });
-                              await sound.playAsync();
-                            } catch {
-                              Alert.alert("Error", "Failed to play audio.");
-                            }
-                          }}
-                          className="mb-1"
-                          accessibilityLabel="Play voice note"
-                        >
-                          <MaterialIcons
-                            name="play-arrow"
-                            size={32}
-                            color="#3a86ff"
-                          />
-                        </TouchableOpacity>
-                        <Text
-                          className="text-xs text-center text-[#22577a]"
-                          numberOfLines={1}
-                          style={{ maxWidth: 80 }}
-                        >
-                          {item.file?.name || "Voice Note"}
-                        </Text>
-                        <TouchableOpacity
-                          className="bg-[#f95d6a] rounded-full p-1 mt-1"
-                          onPress={() =>
-                            removeAttachment(
-                              attachments.indexOf(item),
-                              item?.attachmentId
-                            )
-                          }
-                          accessibilityLabel="Remove voice note"
-                        >
-                          <MaterialIcons name="delete" size={15} color="#fff" />
-                        </TouchableOpacity>
-                      </View>
-                    ))}
-                </ScrollView>
-              </View>
-            )}
             <View className="flex-1 ml-2 min-w-[100px]">
               <Text
                 className="w-20 text-center text-xs mt-1 mb-1 text-[#22577a] font-bold"
@@ -463,6 +420,67 @@ const MediaPicker: React.FC<Props> = ({
           </View>
         )}
       />
+
+      {/* Voice Attachments Row */}
+      {attachments.some((att) => att.attachmentType === "Audio") && (
+        <View className="mt-2">
+          <Text className="text-[#22577a] font-bold mb-2">Voice Notes</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={{ flexDirection: "row" }}
+          >
+            {attachments
+              .filter((att) => att.attachmentType === "Audio")
+              .map((item, idx) => (
+                <View
+                  key={idx}
+                  className="flex-col items-center mr-4 bg-[#e0e7ff] rounded-lg p-2 min-w-[100px]"
+                >
+                  <TouchableOpacity
+                    onPress={async () => {
+                      try {
+                        const { sound } = await Audio.Sound.createAsync({
+                          uri: item.file.uri,
+                        });
+                        await sound.playAsync();
+                      } catch {
+                        Alert.alert("Error", "Failed to play audio.");
+                      }
+                    }}
+                    className="mb-1"
+                    accessibilityLabel="Play voice note"
+                  >
+                    <MaterialIcons
+                      name="play-arrow"
+                      size={32}
+                      color="#3a86ff"
+                    />
+                  </TouchableOpacity>
+                  <Text
+                    className="text-xs text-center text-[#22577a]"
+                    numberOfLines={1}
+                    style={{ maxWidth: 80 }}
+                  >
+                    {item.file?.name || "Voice Note"}
+                  </Text>
+                  <TouchableOpacity
+                    className="bg-[#f95d6a] rounded-full p-1 mt-1"
+                    onPress={() =>
+                      removeAttachment(
+                        attachments.indexOf(item),
+                        item?.attachmentId
+                      )
+                    }
+                    accessibilityLabel="Remove voice note"
+                  >
+                    <MaterialIcons name="delete" size={15} color="#fff" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+          </ScrollView>
+        </View>
+      )}
 
       {/* Video List */}
       {attachments.some((att) => att.attachmentType === "Video") && (

@@ -4,7 +4,7 @@
  */
 export const ROUTES = {
   HOME: "/home" as const,
-  SIGN_IN: "/signIn" as const,
+  SIGN_IN: "/auth" as const,
   COMPLAINS: "/(complains)" as const,
   GARBAGE: "/(garbage)" as const,
   PROJECTS: "/(projects)" as const,

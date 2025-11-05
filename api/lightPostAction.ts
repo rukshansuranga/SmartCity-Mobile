@@ -12,7 +12,7 @@ export async function getNearLightPosts(
 
 export async function addLightPostComplainAsync(complain: {
   lightPostNumber: string;
-  clientId: string;
+  residentId: string;
   subject: string;
   detail: string;
 }): Promise<ApiResponse<void>> {

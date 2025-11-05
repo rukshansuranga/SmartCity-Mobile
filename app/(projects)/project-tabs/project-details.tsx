@@ -18,6 +18,9 @@ export default function ProjectDetails() {
   const activeProjectId = projectId || currentProjectId;
   const activeProjectType = projectType || currentProjectType;
 
+  console.log("Active Project ID:", projectId, currentProjectId);
+  console.log("Active Project Type:", activeProjectType);
+
   useEffect(() => {
     if (activeProjectId) {
       fetchProjectDetail();

@@ -55,7 +55,7 @@ export default function LightPostComplainList() {
     try {
       const result = await addLightPostComplainAsync({
         lightPostNumber: selectedPostNo,
-        clientId: userInfo.sub,
+        residentId: userInfo.sub,
         subject: id,
         detail: "",
       });

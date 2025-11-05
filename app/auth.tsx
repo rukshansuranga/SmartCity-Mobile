@@ -1,24 +1,26 @@
-import { postClient } from "@/api/clientAction";
+import { postResident } from "@/api/residentAction";
 import { useAuthStore } from "@/stores/authStore";
+import { Council } from "@/types";
 import {
   makeRedirectUri,
   useAuthRequest,
   useAutoDiscovery,
 } from "expo-auth-session";
+import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect } from "react";
-import { Text, View } from "react-native";
-
+import { Alert, Text, View } from "react-native";
 import { Button } from "react-native-paper";
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function SignIn() {
-  const { logIn } = useAuthStore();
+  const { logIn, setCouncils, selectedCouncil } = useAuthStore();
+  const router = useRouter();
 
   const redirectUri = makeRedirectUri({
     scheme: "smart-city",
-    path: "signIn",
+    path: "auth",
   });
 
   const discovery = useAutoDiscovery(process.env.EXPO_PUBLIC_KEYCLOAK_URL);
@@ -48,10 +50,7 @@ export default function SignIn() {
 
   useEffect(() => {
     console.log("[DEBUG] useEffect triggered. response:", response);
-    console.log("[DEBUG] request:", request);
-    console.log("[DEBUG] redirectUri:", redirectUri);
-    let isMounted = true;
-    console.log("[DEBUG] SignIn component mounted.");
+
     const getToken = async ({ code, codeVerifier, redirectUri }) => {
       console.log("[DEBUG] getToken called with:", {
         code,
@@ -66,14 +65,15 @@ export default function SignIn() {
           code_verifier: codeVerifier,
           redirect_uri: redirectUri,
         };
-        const formBody = [];
-        for (const property in formData) {
-          const encodedKey = encodeURIComponent(property);
-          const encodedValue = encodeURIComponent(formData[property]);
-          formBody.push(encodedKey + "=" + encodedValue);
-        }
-        console.log("[DEBUG] Token request body:", formBody.join("&"));
-        const response = await fetch(
+        const formBody = Object.entries(formData)
+          .map(
+            ([key, value]) =>
+              `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+          )
+          .join("&");
+
+        console.log("[DEBUG] Requesting token...");
+        const tokenResponse = await fetch(
           `${process.env.EXPO_PUBLIC_KEYCLOAK_URL}/protocol/openid-connect/token`,
           {
             method: "POST",
@@ -81,14 +81,15 @@ export default function SignIn() {
               Accept: "application/json",
               "Content-Type": "application/x-www-form-urlencoded",
             },
-            body: formBody.join("&"),
+            body: formBody,
           }
         );
-        console.log("[DEBUG] tokenResponse.ok:", response.ok);
-        if (response.ok) {
-          const payload = await response.json();
 
-          console.log("[DEBUG] Token payload:", payload);
+        console.log("[DEBUG] tokenResponse.ok:", tokenResponse.ok);
+        if (tokenResponse.ok) {
+          const payload = await tokenResponse.json();
+          console.log("[DEBUG] Token payload received");
+
           const userInfoResponse = await fetch(
             `${process.env.EXPO_PUBLIC_KEYCLOAK_URL}/protocol/openid-connect/userinfo`,
             {
@@ -99,40 +100,73 @@ export default function SignIn() {
               },
             }
           );
+
           console.log("[DEBUG] userInfoResponse.ok:", userInfoResponse.ok);
           const userInfo = await userInfoResponse.json();
           console.log("[DEBUG] userInfo:", userInfo);
-          console.log("User ID (sub):", userInfo.sub); // <-- This is the user ID
+          console.log("User ID (sub):", userInfo.sub);
+
+          // Extract councils from userInfo and convert to Council type
+          const councilNames: string[] = userInfo.councils || [];
+          const councils: Council[] = councilNames.map((councilName) => ({
+            value: councilName,
+            label: councilName,
+          }));
+          console.log("[DEBUG] Extracted councils:", councils);
+
+          // Store councils in auth store
+          setCouncils(councils);
+
+          // Login with all token data
           logIn({
             accessToken: payload.access_token,
+            refreshToken: payload.refresh_token,
             idToken: payload.id_token,
+            expiresIn: payload.expires_in,
             userInfo: userInfo,
           });
-          console.log("[DEBUG] logIn called.");
+
+          console.log("[DEBUG] logIn called successfully");
+
+          // Navigate based on council selection
+          if (councils.length === 0) {
+            console.warn("[DEBUG] No councils available for user");
+            // Optionally show error to user
+          } else if (!selectedCouncil) {
+            console.log(
+              "[DEBUG] No council selected, navigating to selectCouncil"
+            );
+            router.replace("/selectCouncil" as any);
+          } else {
+            console.log("[DEBUG] Council already selected, navigating to home");
+            router.replace("/home");
+          }
         }
       } catch (e) {
-        console.warn("[DEBUG] getToken error:", e);
+        console.error("[DEBUG] getToken error:", e);
       }
     };
-    console.log("[DEBUG] Auth response:", response);
+
     if (response?.type === "success") {
-      // Handle successful login here
       const { code } = response.params;
-      console.log("[DEBUG] Auth code received:", code, request?.codeVerifier);
+      console.log("[DEBUG] Auth code received:", code);
       getToken({
         code,
         codeVerifier: request?.codeVerifier,
         redirectUri,
       });
-      // [DEBUG] logIn is already called inside getToken
     } else {
       console.log("[DEBUG] response is not success or undefined.");
     }
-    return () => {
-      isMounted = false;
-      console.log("[DEBUG] SignIn component unmounted.");
-    };
-  }, [response]);
+  }, [
+    response,
+    request,
+    redirectUri,
+    logIn,
+    setCouncils,
+    selectedCouncil,
+    router,
+  ]);
 
   function handleLogin() {
     console.log("[DEBUG] handleLogin called. promptAsync:", promptAsync);
@@ -146,7 +180,8 @@ export default function SignIn() {
 
   //Handle registration response (same as login)
   useEffect(() => {
-    console.log("registerResponse", registerResponse);
+    console.log("[DEBUG] registerResponse:", registerResponse);
+
     const getToken = async ({ code, codeVerifier, redirectUri }) => {
       try {
         const formData = {
@@ -156,12 +191,12 @@ export default function SignIn() {
           code_verifier: codeVerifier,
           redirect_uri: redirectUri,
         };
-        const formBody = [];
-        for (const property in formData) {
-          const encodedKey = encodeURIComponent(property);
-          const encodedValue = encodeURIComponent(formData[property]);
-          formBody.push(encodedKey + "=" + encodedValue);
-        }
+        const formBody = Object.entries(formData)
+          .map(
+            ([key, value]) =>
+              `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+          )
+          .join("&");
 
         const tokenResponse = await fetch(
           `${process.env.EXPO_PUBLIC_KEYCLOAK_URL}/protocol/openid-connect/token`,
@@ -171,9 +206,10 @@ export default function SignIn() {
               Accept: "application/json",
               "Content-Type": "application/x-www-form-urlencoded",
             },
-            body: formBody.join("&"),
+            body: formBody,
           }
         );
+
         if (tokenResponse.ok) {
           const payload = await tokenResponse.json();
 
@@ -189,60 +225,81 @@ export default function SignIn() {
           );
 
           const userInfo = await userInfoResponse.json();
-          alert("userinfo " + JSON.stringify(userInfo));
-          await postClient({
-            clientId: userInfo.sub,
+          console.log("[DEBUG] Registration - userInfo:", userInfo);
+
+          Alert.alert(
+            "[DEBUG] Registration - userInfo",
+            `Welcome ${userInfo.given_name}! User ID: ${userInfo.sub}`
+          );
+          // Register resident in backend
+          await postResident({
+            residentId: userInfo.sub,
             firstName: userInfo.given_name,
             lastName: userInfo.family_name,
-            mobile: userInfo.mobile,
+            mobile: userInfo.mobile || "",
           });
 
-          alert("logging in user: " + userInfo.sub); // <-- This is the user ID
+          console.log("[DEBUG] Resident registered successfully");
 
+          //add alert with userinfo
+          Alert.alert(
+            "Registration Successful",
+            `Welcome ${userInfo.given_name}! User ID: ${userInfo.sub}`
+          );
+
+          // Extract councils from userInfo and convert to Council type
+          const councilNames: string[] = userInfo.councils || [];
+          const councils: Council[] = councilNames.map((councilName) => ({
+            value: councilName,
+            label: councilName,
+          }));
+          console.log("[DEBUG] Extracted councils:", councils);
+
+          // Store councils in auth store
+          setCouncils(councils);
+
+          // Login with all token data
           logIn({
             accessToken: payload.access_token,
+            refreshToken: payload.refresh_token,
             idToken: payload.id_token,
+            expiresIn: payload.expires_in,
             userInfo: userInfo,
           });
+
+          // For new registrations, always navigate to council selection
+          if (councils.length === 0) {
+            console.warn("[DEBUG] No councils available for new user");
+            // Show error to user
+          } else {
+            console.log(
+              "[DEBUG] New registration, navigating to selectCouncil"
+            );
+            router.replace("/selectCouncil" as any);
+          }
         }
       } catch (e) {
-        console.warn(e);
+        console.error("[DEBUG] Registration getToken error:", e);
       }
     };
 
     if (registerResponse?.type === "success") {
       const { code } = registerResponse.params;
-      console.log("Auth code:", code, registerRequest?.codeVerifier);
+      console.log("[DEBUG] Registration auth code:", code);
       getToken({
         code,
         codeVerifier: registerRequest?.codeVerifier,
         redirectUri,
       });
     }
-  }, [registerResponse]);
-
-  const getUserInfor = async (accessToken) => {
-    try {
-      const userResponse = await fetch(
-        `${process.env.EXPO_PUBLIC_KEYCLOAK_URL}/protocol/openid-connect/userinfo`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            Accept: "application/json",
-          },
-        }
-      );
-
-      if (userResponse.ok) {
-        const userInfo = await userResponse.json();
-        console.log("User ID (sub):", userInfo.sub); // <-- This is the user ID
-        return userInfo;
-      }
-    } catch (e) {
-      console.warn(e);
-    }
-  };
+  }, [
+    registerResponse,
+    registerRequest,
+    redirectUri,
+    logIn,
+    setCouncils,
+    router,
+  ]);
 
   return (
     <View className="flex-1 justify-center items-center bg-[#c7f9cc] px-4">

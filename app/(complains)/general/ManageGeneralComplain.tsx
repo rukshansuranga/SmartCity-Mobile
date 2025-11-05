@@ -115,9 +115,9 @@ export default function ManageGeneralComplain() {
           detail: data.description,
           isPrivate: data.isPrivate,
           status: WorkpackageStatus.New,
-          clientId: userInfo?.sub,
-          client: {
-            clientId: userInfo?.sub,
+          residentId: userInfo?.sub,
+          resident: {
+            residentId: userInfo?.sub,
             firstName: userInfo?.firstName,
             lastName: userInfo?.lastName,
             mobile: userInfo?.mobile,
@@ -129,7 +129,7 @@ export default function ManageGeneralComplain() {
         result = await updateGeneralComplain(id, complain);
       } else {
         const complain = {
-          clientId: userInfo?.sub,
+          residentId: userInfo?.sub,
           subject: data.title,
           detail: data.description,
           isPrivate: data.isPrivate,

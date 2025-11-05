@@ -13,7 +13,7 @@ export default function ComplainListModel({ project }) {
   async function fetchComplainList() {
     try {
       const response = await fetch(
-        `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/complain/projectcomplains/${project.id}`
+        `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/complain/projectcomplains/${project.projectId}`
       );
 
       const result = await response.json();
@@ -66,7 +66,7 @@ export default function ComplainListModel({ project }) {
 
       // Refresh the list after successful deletion
       const response = await fetch(
-        `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/complain/projectcomplains/${project.id}`
+        `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/complain/projectcomplains/${project.projectId}`
       );
       const newData = await response.json();
 
@@ -105,7 +105,9 @@ export default function ComplainListModel({ project }) {
             </View>
             <View className="flex-row justify-between">
               {item?.ticketPackages?.map((ticket) => (
-                <Text>{ticket?.ticket?.title}</Text>
+                <Text key={ticket?.ticket?.ticketId}>
+                  {ticket?.ticket?.title}
+                </Text>
               ))}
 
               <Text>2026-1-2</Text>

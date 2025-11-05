@@ -26,7 +26,7 @@ export default function ComplainAddModal({ project, closeModel }) {
       //       subject: complainText,
       //       detail: description,
       //       clientId: 1,
-      //       projectId: project.id,
+      //       projectId: project.projectId,
       //     }),
       //   }
       // );
@@ -34,11 +34,11 @@ export default function ComplainAddModal({ project, closeModel }) {
       const complain = {
         subject: complainText,
         detail: description,
-        clientId: userInfo?.sub,
-        projectId: project.id,
+        residentId: userInfo?.sub,
+        projectId: project.projectId,
       };
 
-      console.log("Submitting complain:", complain);
+      console.log("Submitting complain:", project);
 
       const response = await addProjectComplain(complain);
 

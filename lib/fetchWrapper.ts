@@ -3,9 +3,10 @@
 import { useAuthStore } from "@/stores/authStore";
 import { ApiResponse } from "@/types";
 import Toast from "react-native-toast-message";
+import { getValidAccessToken } from "./tokenManager";
 
 //const baseUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
-const baseUrl = "https://3aa7e53a2d6f.ngrok-free.app/api/";
+const baseUrl = "https://7b15d4705d62.ngrok-free.app/api/";
 
 async function get(url: string) {
   const requestOptions = {
@@ -190,26 +191,44 @@ async function handleResponse(response: Response): Promise<any> {
 }
 
 async function getHeaders(): Promise<Headers> {
-  const { accessToken } = useAuthStore.getState(); // Use getState() for non-component usage
-  //const session = await auth();
+  // Validate and refresh token if needed
+  const accessToken = await getValidAccessToken();
+  const { selectedCouncil } = useAuthStore.getState();
+
   const headers = new Headers();
   headers.set("Content-type", "application/json");
-  // console.log("get headers accessToken:", accessToken);
+
   if (accessToken) {
     headers.set("Authorization", "Bearer " + accessToken);
   }
+
+  // Add council ID header if council is selected
+  if (selectedCouncil?.value) {
+    headers.set("X-Council-Id", selectedCouncil.value);
+  }
+
   return headers;
 }
 
 // Headers for FormData requests (don't set Content-Type, let browser set it with boundary)
 async function getFormDataHeaders(): Promise<Headers> {
-  const { accessToken } = useAuthStore.getState();
+  // Validate and refresh token if needed
+  const accessToken = await getValidAccessToken();
+  const { selectedCouncil } = useAuthStore.getState();
+
   const headers = new Headers();
   headers.set("Content-type", "multipart/form-data");
   // Don't set Content-Type for FormData - browser will set it automatically with boundary
+
   if (accessToken) {
     headers.set("Authorization", `Bearer ${accessToken}`);
   }
+
+  // Add council ID header if council is selected
+  if (selectedCouncil?.value) {
+    headers.set("X-Council-Id", selectedCouncil.value);
+  }
+
   return headers;
 }
 

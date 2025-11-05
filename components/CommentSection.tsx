@@ -35,15 +35,15 @@ const CommentItem: React.FC<CommentItemProps> = ({
   canDelete = false,
 }) => {
   const { userInfo } = useAuthStore();
-  const isFromClient = comment.clientId && !comment.userId;
-  const isFromUser = comment.userId && !comment.clientId;
+  const isFromResident = comment.residentId && !comment.userId;
+  const isFromUser = comment.userId && !comment.residentId;
   const isOwner =
-    (isFromClient && comment.clientId === userInfo?.sub) ||
+    (isFromResident && comment.residentId === userInfo?.sub) ||
     (isFromUser && comment.userId === userInfo?.sub);
 
-  const displayName = isFromClient
-    ? comment.client?.name ||
-      `${comment.client?.firstName || ""} ${comment.client?.lastName || ""}`.trim()
+  const displayName = isFromResident
+    ? comment.resident?.name ||
+      `${comment.resident?.firstName || ""} ${comment.resident?.lastName || ""}`.trim()
     : comment.user?.name ||
       `${comment.user?.firstName || ""} ${comment.user?.lastName || ""}`.trim();
 
@@ -72,7 +72,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
 
   return (
     <View
-      className={`mb-2 p-3 rounded-lg ${isFromClient ? "bg-[#c7f9cc]" : "bg-[#80ed99]"}`}
+      className={`mb-2 p-3 rounded-lg ${isFromResident ? "bg-[#c7f9cc]" : "bg-[#80ed99]"}`}
       style={{
         shadowColor: "#000",
         shadowOffset: {
@@ -86,7 +86,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
     >
       {/* Row for name and edit/delete icons */}
       <View
-        className={`flex-row ${isFromClient ? "justify-end" : "justify-start"} items-center mb-1`}
+        className={`flex-row ${isFromResident ? "justify-end" : "justify-start"} items-center mb-1`}
       >
         <Text
           className={`text-[#22577a] text-sm font-semibold`}
@@ -121,13 +121,13 @@ const CommentItem: React.FC<CommentItemProps> = ({
       </View>
       {/* Main content row */}
       <View
-        className={`flex-row ${isFromClient ? "justify-end" : "justify-start"} items-center`}
+        className={`flex-row ${isFromResident ? "justify-end" : "justify-start"} items-center`}
       >
         <View
-          className={`flex-1 ml-2 ${isFromClient ? "items-end" : "items-start"}`}
+          className={`flex-1 ml-2 ${isFromResident ? "items-end" : "items-start"}`}
         >
           <Text
-            className={`text-[#22577a] ${isFromClient ? "text-right" : "text-left"}`}
+            className={`text-[#22577a] ${isFromResident ? "text-right" : "text-left"}`}
           >
             {comment.text}
           </Text>
@@ -251,7 +251,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
         entityType,
         entityId,
         isPrivate,
-        clientId: userInfo?.sub,
+        residentId: userInfo?.sub,
         type: getCommentTypeFromEntityType(entityType),
       };
 

@@ -78,7 +78,7 @@ export default function Road() {
     (item) => {
       router.push({
         pathname: "/projectDetail",
-        params: { projectId: item.id },
+        params: { projectId: item.projectId },
       });
     },
     [router]
@@ -160,7 +160,7 @@ export default function Road() {
                 data={projects}
                 renderItem={renderProjectItem}
                 keyExtractor={(item, index) =>
-                  item.id?.toString() || String(index)
+                  item.projectId?.toString() || String(index)
                 }
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 20 }}

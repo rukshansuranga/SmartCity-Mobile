@@ -167,9 +167,9 @@ export default function Complains() {
             </View>
 
             <View className="flex-row items-center gap-2">
-              {item.client && (
+              {item.resident && (
                 <Text className="text-[#38a3a5] font-bold text-sm">
-                  {item.client.firstName} {item.client.lastName}
+                  {item.resident.firstName} {item.resident.lastName}
                 </Text>
               )}
               {/* Use CommentManager for comments */}
@@ -284,7 +284,7 @@ export default function Complains() {
                 Add Project Complain
               </Text>
               <ComplainAddModal
-                project={{ id: Number(currentProjectId) }}
+                project={{ projectId: Number(currentProjectId) }}
                 closeModel={handleCloseAddComplainModal}
               />
             </View>

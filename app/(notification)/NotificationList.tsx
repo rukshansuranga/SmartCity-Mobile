@@ -90,7 +90,7 @@ export default function NotificationList() {
         complainId: selectedNotification.complain.complainId,
         rating: starRating,
         note: feedback,
-        clientId: userInfo.sub,
+        residentId: userInfo.sub,
         notificationId: selectedNotification.id,
       });
       if (!result.isSuccess) {
