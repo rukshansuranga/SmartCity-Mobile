@@ -1,0 +1,82 @@
+---
+appId: com.rukshansuranga.smartcity
+name: Project Complains Flow Test with Fixtures
+---
+# Initialize test fixture data
+- runScript: ../scripts/initProjectComplainTest.js
+
+# Launch app and login
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "logout-button"
+    timeout: 15000
+    optional: true
+- tapOn:
+    id: "logout-button"
+    optional: true
+- extendedWaitUntil:
+    visible: "Sign In"
+    timeout: 10000
+
+# Sign In Flow
+- tapOn: "Sign In"
+- extendedWaitUntil:
+    visible: "Sign in"
+    timeout: 15000
+- tapOn: "Username or email"
+- inputText: "amal"
+- tapOn: "Password"
+- inputText: "123"
+- hideKeyboard
+- tapOn: "Sign In"
+
+# Council selection
+- extendedWaitUntil:
+    visible: "Select Your Council"
+    timeout: 15000
+- tapOn: "-- Select a Council --"
+- tapOn: "Mahara"
+- tapOn: "Continue"
+
+# Navigate to Project Complains
+- tapOn: "Complains"
+- tapOn: "Project"
+- extendedWaitUntil:
+    visible: "Complain List"
+    timeout: 15000
+- takeScreenshot: "./screenshots/project_complains_list.png"
+
+# Add new project complain
+- tapOn: "Add"
+- extendedWaitUntil:
+    visible: "Add Complain"
+    timeout: 15000
+
+# Fill complain form
+- tapOn: "Enter your complain"
+- inputText: "${output.complainSubject}"
+- tapOn: "Enter Description"
+- inputText: "${output.complainDetail}"
+- hideKeyboard
+
+# Select project (adjust based on actual UI)
+# - tapOn: "Select Project"
+# - tapOn: "${output.projectId}"
+
+- takeScreenshot: "./screenshots/project_complain_form.png"
+
+# Submit complain
+- tapOn: "Add Complain"
+
+# Verify success
+- extendedWaitUntil:
+    visible: "Complain List"
+    timeout: 15000
+- takeScreenshot: "./screenshots/project_complains_list_after_add.png"
+
+# Save test fixture to backend
+- runScript: ../scripts/saveProjectComplainFixture.js
+
+# Verify complain was created successfully
+- assertVisible: "Complain List"

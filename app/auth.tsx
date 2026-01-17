@@ -1,4 +1,4 @@
-import { postResident } from "@/api/residentAction";
+import { registerResident } from "@/api/residentAction";
 import { useAuthStore } from "@/stores/authStore";
 import { Council } from "@/types";
 import {
@@ -169,9 +169,34 @@ export default function SignIn() {
   ]);
 
   function handleLogin() {
-    console.log("[DEBUG] handleLogin called. promptAsync:", promptAsync);
+    console.log("[DEBUG] handleLogin called");
+    console.log("[DEBUG] promptAsync type:", typeof promptAsync);
+    console.log("[DEBUG] promptAsync:", promptAsync);
+    console.log("[DEBUG] request:", request);
+    console.log("[DEBUG] discovery:", discovery);
 
-    promptAsync();
+    if (!promptAsync) {
+      console.error("[DEBUG] promptAsync is not available!");
+      return;
+    }
+
+    try {
+      console.log("[DEBUG] Calling promptAsync...");
+      const result = promptAsync();
+      console.log("[DEBUG] promptAsync result:", result);
+
+      if (result && typeof result.then === "function") {
+        result
+          .then((res) => {
+            console.log("[DEBUG] promptAsync resolved:", res);
+          })
+          .catch((err) => {
+            console.error("[DEBUG] promptAsync rejected:", err);
+          });
+      }
+    } catch (error) {
+      console.error("[DEBUG] Error calling promptAsync:", error);
+    }
   }
 
   function handleRegister() {
@@ -231,14 +256,18 @@ export default function SignIn() {
             "[DEBUG] Registration - userInfo",
             `Welcome ${userInfo.given_name}! User ID: ${userInfo.sub}`
           );
-          // Register resident in backend
-          await postResident({
-            residentId: userInfo.sub,
-            firstName: userInfo.given_name,
-            lastName: userInfo.family_name,
-            mobile: userInfo.mobile || "",
-          });
 
+          await registerResident({
+            sub: userInfo.sub,
+            given_name: userInfo.given_name,
+            family_name: userInfo.family_name,
+            mobile: userInfo.mobile || "",
+            email: userInfo.email,
+            email_verified: userInfo.email_verified,
+            name: userInfo.name,
+            preferred_username: userInfo.preferred_username,
+            councils: userInfo.councils,
+          });
           console.log("[DEBUG] Resident registered successfully");
 
           //add alert with userinfo

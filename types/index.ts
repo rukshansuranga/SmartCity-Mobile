@@ -125,6 +125,17 @@ export type Notification = {
   type: NotificationType;
   complain: Complain;
   isRead: boolean;
+  data?: NotificationData;
+};
+
+export type NotificationData = {
+  complainId?: string;
+  projectId?: string;
+  complainSubject?: string;
+  complainCreatedDate?: string;
+  projectProgressId?: string;
+  coordinatorId?: string;
+  rating?: number;
 };
 
 export type Project = {
@@ -308,4 +319,34 @@ export interface LandParcelWithArrears {
   landParcelID: number;
   streetAddress: string;
   taxableUnits: TaxableUnitWithArrears[];
+}
+
+export interface PaymentHistoryResponseDto {
+  paymentID: number;
+  paymentDate: string; // ISO string
+  residentName: string;
+  residentId: string;
+  totalAmount: number;
+  paymentType: number; // Assuming enum, but as number
+  paymentMethod: string;
+  receiptNumber: string;
+  paymentDetails: PaymentDetailItemDto[];
+}
+
+export interface PaymentDetailItemDto {
+  taxableUnitID: number;
+  unitType: string;
+  landParcelID: number;
+  landParcelAddress: string;
+  assessmentYear: number;
+  annualValue: number;
+  taxRate: number;
+  quarters: QuarterDetailDto[];
+}
+
+export interface QuarterDetailDto {
+  quarter: number;
+  quarterAmount: number;
+  discount: number;
+  surcharge: number;
 }

@@ -1,0 +1,125 @@
+---
+appId: com.rukshansuranga.smartcity
+name: Reply Comment Test for General Complains
+---
+# Fetch fixture data from oldest general complain
+- runScript: ../../scripts/fetchGeneralComplainFixture.js
+
+# Test replying to comments on general complains
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "logout-button"
+    timeout: 15000
+    optional: true
+- tapOn:
+    id: "logout-button"
+    optional: true
+- extendedWaitUntil:
+    visible: "Sign In"
+    timeout: 10000
+- assertVisible: "Sign In"
+- assertVisible: "Sign Up"
+- takeScreenshot: "./screenshots/reply_comment_auth_screen.png"
+
+# Test Sign In Flow with Keycloak
+- tapOn: "Sign In"
+
+# Wait for Keycloak login page to load (increase timeout for OAuth)
+- extendedWaitUntil:
+    visible: "Sign in"
+    timeout: 15000
+
+# Fill in Keycloak credentials
+- tapOn: "Username or email"
+- inputText: "amal"
+- tapOn: "Password"
+- inputText: "123"
+- hideKeyboard
+
+# Submit login
+- tapOn: "Sign In"
+- takeScreenshot: "./screenshots/reply_comment_keycloak_login_submitted.png"
+
+# Wait for council selection screen
+- extendedWaitUntil:
+    visible: "Select Your Council"
+    timeout: 15000
+- takeScreenshot: "./screenshots/reply_comment_council_selection.png"
+
+# Select a council
+- tapOn: "-- Select a Council --"
+- tapOn: "Mahara"
+- tapOn: "Continue"
+
+# Navigate to Complains section
+- tapOn: "Complains"
+- assertVisible: "Complains"
+
+# Navigate to General Complains
+- tapOn: "General"
+- extendedWaitUntil:
+    visible: "Complain List"
+    timeout: 15000
+- assertVisible:
+    text: "Complain List"
+- takeScreenshot: "./screenshots/reply_comment_general_complains_list.png"
+
+# Search for the complain from fixture and scroll if needed
+- scrollUntilVisible:
+    element:
+      text: "${output.complainSubject}"
+    direction: DOWN
+    timeout: 15000
+- takeScreenshot: "./screenshots/reply_comment_complain_found.png"
+
+# Verify the correct complain is visible
+- assertVisible: "${output.complainSubject}"
+
+# Now find and tap the comment button on the same list item
+# The comment button should be near the complain subject we just found
+- tapOn:
+    id: "comment-button"
+    below:
+      text: "${output.complainSubject}"
+- takeScreenshot: "./screenshots/reply_comment_modal_opened.png"
+
+# Wait for comment input to be visible
+- extendedWaitUntil:
+    visible:
+      id: "comment-input"
+    timeout: 10000
+
+# Add the reply comment
+- tapOn:
+    id: "comment-input"
+- inputText: "Thank you for the quick response. Can you please confirm that the inspection will also check for the source of the blockage? Simply clearing debris often works only temporarily, and the flooding returns quickly. As noted in my suggestion, if a CCTV survey is needed to check for pipe damage or root ingress, please ensure that is factored into the plan, as this has been an ongoing issue for six months. When should I expect a formal resolution timeline?"
+- hideKeyboard
+- takeScreenshot: "./screenshots/reply_comment_text_entered.png"
+
+# Scroll to find the send button
+- scrollUntilVisible:
+    element:
+      id: "send-comment-button"
+    direction: DOWN
+    timeout: 5000
+
+# Submit the comment
+- tapOn:
+    id: "send-comment-button"
+- takeScreenshot: "./screenshots/reply_comment_submitted.png"
+
+# Wait for comment to appear in list
+- extendedWaitUntil:
+    visible: "Thank you for the quick response"
+    timeout: 10000
+- takeScreenshot: "./screenshots/reply_comment_visible_in_list.png"
+
+# Close comment modal
+- tapOn:
+    id: "close-comment-modal"
+- extendedWaitUntil:
+    visible: "Complain List"
+    timeout: 10000
+- assertVisible: "Complain List"
+- takeScreenshot: "./screenshots/reply_comment_test_complete.png"

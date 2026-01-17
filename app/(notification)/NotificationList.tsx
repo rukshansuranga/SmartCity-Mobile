@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { FlatList, Image, Modal, Pressable, Text, View } from "react-native";
 import { Button, Card, IconButton, TextInput } from "react-native-paper";
 import { appStore } from "../../stores/appStore";
+import { NotificationData } from "../../types";
 
 const iconMap = {
   GeneralComplain: require("@/assets/icons/GeneralComplain.png"),
@@ -43,7 +44,7 @@ export default function NotificationList() {
         setNotifications([]);
         return;
       }
-      console.log("Fetched notifications:", res.data);
+
       setNotifications(res.data || []);
     } catch (error) {
       console.error("Error fetching notifications:", error);
@@ -83,11 +84,17 @@ export default function NotificationList() {
   }
 
   async function handleRating() {
-    if (!selectedNotification?.complain?.complainId || !starRating) return;
+    console.log(
+      "Submitting rating for notification:",
+      selectedNotification,
+      starRating
+    );
+
+    if (!selectedNotification?.complainId || !starRating) return;
 
     try {
       const result = await addRating({
-        complainId: selectedNotification.complain.complainId,
+        complainId: selectedNotification?.complainId,
         rating: starRating,
         note: feedback,
         residentId: userInfo.sub,
@@ -119,7 +126,13 @@ export default function NotificationList() {
           );
         }
       }
-      setSelectedNotification(item);
+
+      console.log("Notification item pressed:", item);
+
+      const data: NotificationData = JSON.parse(item?.data) as NotificationData;
+      console.log("Notification data:", data);
+      console.log("Notification item:", item);
+      setSelectedNotification({ ...item, complainId: data.complainId, data });
       setModalVisible(true);
       await fetchNotifications();
     } catch (error) {
@@ -137,6 +150,7 @@ export default function NotificationList() {
             item.id?.toString() || Math.random().toString()
           }
           renderItem={({ item }) => {
+            // console.log("Rendering notification item:", item);
             return (
               <Card className="mb-2 px-3 py-2 bg-[#80ed99] rounded-xl">
                 <Pressable onPress={() => handleNotificationPress(item)}>
@@ -145,10 +159,9 @@ export default function NotificationList() {
                       <Image
                         source={
                           iconMap[item?.complain?.complainType] ||
-                          require("@/assets/icons/LightPostComplain.png")
+                          require("@/assets/icons/message.png")
                         }
                         className="w-7 h-7"
-                        style={{ tintColor: "#22577a" }}
                         resizeMode="contain"
                       />
                     </View>
@@ -165,7 +178,7 @@ export default function NotificationList() {
                       </Text>
                     </View>
                   </View>
-                  {item.status === 1 && (
+                  {item.status === 0 && item?.type === 2 && (
                     <View className="self-end elevation-md p-1 rounded-md bg-[#80ed99]">
                       <Image
                         source={require("@/assets/icons/rating.png")}
@@ -215,25 +228,26 @@ export default function NotificationList() {
                 </Text>
               </View>
             </Card>
+            {(selectedNotification?.category == 0 ||
+              selectedNotification?.category == 1) && (
+              <Card className="w-full px-2 py-2 bg-[#57cc99] rounded-xl">
+                <View>
+                  <Text className="text-[#22577a] font-bold">Complain</Text>
+                  <Text className="text-[#22577a]">
+                    {selectedNotification?.data?.complainSubject}
+                  </Text>
+                </View>
+                <View className="flex flex-row justify-between mt-3">
+                  <Text className="text-[#22577a] font-bold">Created Date</Text>
+                  <Text className="text-[#22577a]">
+                    {selectedNotification?.data?.complainCreatedDate}
+                  </Text>
+                </View>
+              </Card>
+            )}
 
-            <Card className="w-full px-2 py-2 bg-[#57cc99] rounded-xl">
-              <View>
-                <Text className="text-[#22577a] font-bold">Complain</Text>
-                <Text className="text-[#22577a]">
-                  {selectedNotification?.complain?.subject}
-                </Text>
-              </View>
-              <View className="flex flex-row justify-between mt-3">
-                <Text className="text-[#22577a] font-bold">Created Date</Text>
-                <Text className="text-[#22577a]">
-                  {new Date(selectedNotification?.complain?.createdAt)
-                    .toLocaleString()
-                    .slice(0, 9)}
-                </Text>
-              </View>
-            </Card>
             {selectedNotification?.type === 2 &&
-              selectedNotification.status === 6 && (
+              selectedNotification.status === 1 && (
                 <Card className="w-full">
                   <View className="flex flex-row justify-center items-center gap-2 px-2 py-2  rounded-xl">
                     <Text className="text-[#22577a] font-bold">
@@ -241,7 +255,7 @@ export default function NotificationList() {
                     </Text>
 
                     <Text className="font-bold text-xl bg-[#57cc99] rounded-full px-4 py-2">
-                      {selectedNotification?.complain?.rating}
+                      {selectedNotification?.data?.rating}
                     </Text>
 
                     <Text>Starts</Text>
@@ -250,7 +264,7 @@ export default function NotificationList() {
               )}
 
             {selectedNotification?.type === 2 &&
-              selectedNotification.status === 1 && (
+              selectedNotification.status === 0 && (
                 <Card className="flex w-full px-2 pb-2 bg-[#80ed99] rounded-xl">
                   <View>
                     <Rating

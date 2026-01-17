@@ -201,8 +201,6 @@ export default function GeneralComplainList() {
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  console.log("Initial isPrivate from params:", params?.isPrivate, isPrivate);
-
   useEffect(() => {
     // If navigation param changes, update isPrivate state
     if (params && typeof params.isPrivate === "string") {
@@ -276,8 +274,6 @@ export default function GeneralComplainList() {
       console.error("Error deleting complain:", error);
     }
   }
-
-  console.log("Rendering GeneralComplainList with isPrivate:", isPrivate);
 
   return (
     <SafeAreaProvider>

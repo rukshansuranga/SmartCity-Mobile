@@ -1,4 +1,5 @@
 import { fetchWrapper } from "@/lib/fetchWrapper";
+import { PaymentHistoryResponseDto } from "@/types";
 
 /**
  * Request body for creating a payment intent
@@ -28,6 +29,7 @@ export interface ConfirmPaymentRequest {
   residentId: string;
   arrearsIds: number[];
   quarterlyTaxIds: string[];
+  total: number;
 }
 
 /**
@@ -93,4 +95,15 @@ export function convertToCents(amount: number): number {
  */
 export function convertFromCents(cents: number): number {
   return cents / 100;
+}
+
+/**
+ * Fetches payment history for a resident
+ * @param residentId The resident ID
+ * @returns Array of payment history
+ */
+export async function getPaymentHistory(
+  residentId: string
+): Promise<PaymentHistoryResponseDto[]> {
+  return fetchWrapper.get(`Payment/history/${residentId}`);
 }

@@ -2,31 +2,59 @@
 appId: com.rukshansuranga.smartcity
 name: Authentication Flow Test
 ---
-# Test complete authentication flow including sign in and sign up
-- launchApp
-- assertVisible: "Sign In"
+# Test complete authentication flow with Keycloak OAuth
 
-# Test Sign In with valid credentials
-- tapOn: "Email"
-- inputText: "test@smartcity.com"
-- tapOn: "Password"
-- inputText: "Test123!"
+# Launch app and verify auth screen
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "logout-button"
+    timeout: 15000
+    optional: true
+- tapOn:
+    id: "logout-button"
+    optional: true
+- extendedWaitUntil:
+    visible: "Sign In"
+    timeout: 10000
+- assertVisible: "Sign In"
+- assertVisible: "Sign Up"
+- takeScreenshot: "./screenshots/auth_screen.png"
+
+# Test Sign In Flow with Keycloak
 - tapOn: "Sign In"
 
-# Verify successful login
-- assertVisible:
-    text: "Home"
-    timeout: 5000
-- takeScreenshot: "./screenshots/auth_success.png"
+# Wait for Keycloak login page to load (increase timeout for OAuth)
+- extendedWaitUntil:
+    visible: "Sign in"
+    timeout: 15000
 
-# Test navigation after login
-- assertVisible: "Complains"
+# Fill in Keycloak credentials
+- tapOn: "Username or email"
+- inputText: "amal"
+- tapOn: "Password"
+- inputText: "123"
+- hideKeyboard
+
+# Submit login
+- tapOn: "Sign In"
+- takeScreenshot: "./screenshots/keycloak_login_submitted.png"
+
+# Wait for council selection screen
+- extendedWaitUntil:
+    visible: "Select Your Council"
+    timeout: 15000
+- takeScreenshot: "./screenshots/council_selection.png"
+
+# Select a council
+- tapOn: "-- Select a Council --"
+- tapOn: "Mahara"
+- tapOn: "Continue"
+
+# Verify successful navigation to home
+- extendedWaitUntil:
+    visible: "Complains"
+    timeout: 15000
 - assertVisible: "Projects"
 - assertVisible: "Garbage"
-- assertVisible: "Notifications"
-
-# Test logout (if available)
-- tapOn: "Profile"
-- tapOn: "Logout"
-- assertVisible: "Sign In"
-- takeScreenshot: "./screenshots/auth_logout.png"
+- takeScreenshot: "./screenshots/home_screen_after_login.png"

@@ -1,0 +1,5 @@
+appId: com.rukshansuranga.smartcity
+name: Auth and General Complains Test Suite
+---
+- runFlow: ../flows/auth-flow.yaml
+- runFlow: ../flows/general-complains-flow.yaml

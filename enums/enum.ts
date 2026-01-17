@@ -37,12 +37,13 @@ export enum ProjectType {
 
 export enum NotificationStatus {
   Created,
-  Sent,
-  Delivered,
-  Failed,
-  ReSent,
   Rated,
-  Completed,
+}
+
+export enum NotificationCategory {
+  ComplainTicketCreation,
+  ComplainTicketUpdate,
+  GeneralAnnouncement,
 }
 
 export enum NotificationType {

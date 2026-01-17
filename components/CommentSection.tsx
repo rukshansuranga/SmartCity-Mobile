@@ -17,6 +17,7 @@ interface CommentSectionProps {
   entityId: string;
   initialComments?: Comment[];
   isPrivate?: boolean;
+  onCommentAdded?: () => void;
 }
 
 interface CommentItemProps {
@@ -147,6 +148,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
   entityId,
   initialComments = [],
   isPrivate = false,
+  onCommentAdded,
 }) => {
   const { userInfo } = useAuthStore();
   const [comments, setComments] = useState<Comment[]>([]);
@@ -271,6 +273,10 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
             style: { zIndex: 9999 },
           },
         });
+        // Trigger callback to close modal if provided
+        if (onCommentAdded) {
+          onCommentAdded();
+        }
       } else {
         Toast.show({
           type: "error",
@@ -454,21 +460,24 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
           <TextInput
             value={newCommentText}
             multiline
-            numberOfLines={2}
+            mode="outlined"
             onChangeText={setNewCommentText}
-            placeholder="Type your comment here..."
+            placeholder="Write a comment..."
+            testID="comment-input"
             style={{
-              color: "#22577a",
-              backgroundColor: "#f6fff8",
-              borderRadius: 8,
+              minHeight: 100,
+              maxHeight: 100,
+            }}
+            contentStyle={{
+              paddingTop: 8,
+            }}
+            outlineStyle={{
               borderColor: "#57cc99",
               borderWidth: 2,
-              paddingHorizontal: 12,
-              paddingVertical: 8,
-              fontWeight: "bold",
-              height: 60,
-              textAlignVertical: "top",
+              borderRadius: 8,
             }}
+            textColor="#22577a"
+            placeholderTextColor="#22577a80"
           />
           <View className="flex-row justify-end mt-2" style={{ gap: 8 }}>
             {editingComment && (
@@ -479,6 +488,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
                 onPress={cancelEdit}
                 disabled={isSubmitting}
                 compact
+                testID="cancel-comment-button"
               >
                 Cancel
               </Button>
@@ -493,6 +503,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
               disabled={isSubmitting || !newCommentText.trim()}
               loading={isSubmitting}
               compact
+              testID="send-comment-button"
             >
               {/* {editingComment ? "Update" : "Add"} */}
               Comment

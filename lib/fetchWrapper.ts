@@ -6,7 +6,7 @@ import Toast from "react-native-toast-message";
 import { getValidAccessToken } from "./tokenManager";
 
 //const baseUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
-const baseUrl = "https://7b15d4705d62.ngrok-free.app/api/";
+const baseUrl = "https://f3f4fbd2ef5d.ngrok-free.app/api/";
 
 async function get(url: string) {
   const requestOptions = {
@@ -82,7 +82,7 @@ function objectToFormData(obj: Record<string, unknown>): FormData {
 // Generic method to post FormData
 async function postFormData(
   url: string,
-  data: FormData | Record<string, unknown>
+  data: FormData | Record<string, unknown>,
 ) {
   const formData = data instanceof FormData ? data : objectToFormData(data);
   const requestOptions = {
@@ -97,7 +97,7 @@ async function postFormData(
 // Generic method to put FormData
 async function putFormData(
   url: string,
-  data: FormData | Record<string, unknown>
+  data: FormData | Record<string, unknown>,
 ) {
   const formData = data instanceof FormData ? data : objectToFormData(data);
 
@@ -113,7 +113,7 @@ async function putFormData(
 // Generic method to patch FormData
 async function patchFormData(
   url: string,
-  data: FormData | Record<string, unknown>
+  data: FormData | Record<string, unknown>,
 ) {
   const formData = data instanceof FormData ? data : objectToFormData(data);
 
@@ -157,7 +157,7 @@ async function handleResponse(response: Response): Promise<any> {
               type: "error",
               text1: "Error",
               text2: error,
-            })
+            }),
           );
         } else {
           Toast.show({

@@ -23,14 +23,14 @@ import React, { useEffect, useState } from "react";
 import { Alert, Pressable, Text, View } from "react-native";
 import Toast from "react-native-toast-message";
 
-type TabType = "arrears" | "quarterly" | "payment";
+type TabType = "arrears" | "quarterly" | "payments";
 
 export default function PaymentScreen() {
   const { userInfo } = useAuthStore();
   const [activeTab, setActiveTab] = useState<TabType>("arrears");
   const [arrears, setArrears] = useState<LandParcelWithArrears[]>([]);
   const [quarterlyTax, setQuarterlyTax] = useState<QuarterlyTaxByResidentDto[]>(
-    []
+    [],
   );
   const [loadingArrears, setLoadingArrears] = useState(false);
   const [loadingQuarterly, setLoadingQuarterly] = useState(false);
@@ -48,9 +48,9 @@ export default function PaymentScreen() {
   }, [residentId]);
 
   // Fetch quarterly tax data on mount
-  useEffect(() => {
-    fetchQuarterlyTax();
-  }, [residentId]);
+  // useEffect(() => {
+  //   fetchQuarterlyTax();
+  // }, [residentId]);
 
   const handleProceedToPayment = async () => {
     const total = getTotalAmount();
@@ -58,7 +58,7 @@ export default function PaymentScreen() {
       Alert.alert(
         "Cart Empty",
         "Please select items to pay before proceeding to payment.",
-        [{ text: "OK" }]
+        [{ text: "OK" }],
       );
       return;
     }
@@ -74,7 +74,7 @@ export default function PaymentScreen() {
       // Step 1: Prepare payment data
       const arrearsIds = selectedArrears.map((item) => item.arrearsID);
       const quarterlyTaxIds = selectedQuarterlyTax.map((item) =>
-        formatQuarterlyTaxId(item.taxableUnitID, item.taxYear, item.quarter)
+        formatQuarterlyTaxId(item.taxableUnitID, item.taxYear, item.quarter),
       );
 
       const description = `Tax Payment - ${arrearsIds.length} arrears, ${quarterlyTaxIds.length} quarterly taxes`;
@@ -136,6 +136,7 @@ export default function PaymentScreen() {
         residentId,
         arrearsIds,
         quarterlyTaxIds,
+        total,
       });
 
       if (!confirmResponse) {
@@ -157,7 +158,7 @@ export default function PaymentScreen() {
               fetchQuarterlyTax();
             },
           },
-        ]
+        ],
       );
 
       Toast.show({
@@ -170,7 +171,7 @@ export default function PaymentScreen() {
       Alert.alert(
         "Payment Failed",
         error.message || "An error occurred during payment processing",
-        [{ text: "OK" }]
+        [{ text: "OK" }],
       );
 
       Toast.show({
@@ -274,16 +275,16 @@ export default function PaymentScreen() {
 
         <Pressable
           className={`flex-1 py-3 px-4 rounded-lg items-center ${
-            activeTab === "payment" ? "bg-[#80ed99]" : "bg-[#c7f9cc]"
+            activeTab === "payments" ? "bg-[#80ed99]" : "bg-[#c7f9cc]"
           }`}
-          onPress={() => setActiveTab("payment")}
+          onPress={() => setActiveTab("payments")}
         >
           <Text
             className={`font-semibold ${
-              activeTab === "payment" ? "text-[#22577a]" : "text-[#22577a]"
+              activeTab === "payments" ? "text-[#22577a]" : "text-[#22577a]"
             }`}
           >
-            Payment
+            Payments
           </Text>
         </Pressable>
       </View>
@@ -301,7 +302,7 @@ export default function PaymentScreen() {
           />
         )}
 
-        {activeTab === "payment" && (
+        {activeTab === "payments" && (
           <PaymentSummarySection
             onProceedToPayment={handleProceedToPayment}
             processingPayment={processingPayment}

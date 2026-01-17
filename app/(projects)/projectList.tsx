@@ -1,13 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ScrollView, TouchableOpacity, View } from "react-native";
-import {
-  ActivityIndicator,
-  Card,
-  Chip,
-  IconButton,
-  Text,
-} from "react-native-paper";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Card, Chip, IconButton } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getRecentProjects } from "../../api/projectAction";
 import { ProjectStatus, ProjectType } from "../../enums/enum";
@@ -22,6 +16,14 @@ export default function ProjectList() {
   const [isProjectsExpanded, setIsProjectsExpanded] = useState(true);
   const [isStatsExpanded, setIsStatsExpanded] = useState(true);
   const { setCurrentProject } = appStore();
+
+  const toTitleCase = (str: string) => {
+    if (!str) return "";
+    return str
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+  };
 
   useEffect(() => {
     fetchRecentProjects();
@@ -74,7 +76,7 @@ export default function ProjectList() {
   const getStatusColor = (status: ProjectStatus): string => {
     switch (status) {
       case ProjectStatus.New:
-        return "#c7f9cc";
+        return "#57cc99";
       case ProjectStatus.InProgress:
         return "#57cc99";
       case ProjectStatus.Completed:
@@ -82,7 +84,7 @@ export default function ProjectList() {
       case ProjectStatus.OnHold:
         return "#ffd166";
       default:
-        return "#c7f9cc";
+        return "#57cc99";
     }
   };
 
@@ -110,19 +112,27 @@ export default function ProjectList() {
       <Card className="mb-3">
         <Card.Content>
           <View className="flex-row justify-between items-start mb-2">
-            <Text className="font-bold text-[#22577a] flex-1 mr-2">
-              {item.subject}
+            <Text className="font-black text-[#22577a] flex-1 mr-2">
+              {item.subject ? toTitleCase(item.subject) : ""}
             </Text>
             <Chip
               mode="outlined"
               textStyle={{ color: "#22577a", fontSize: 12 }}
-              style={{ backgroundColor: getStatusColor(item.status) }}
+              style={{
+                backgroundColor: getStatusColor(item.status),
+                borderRadius: 50,
+              }}
             >
               {getStatusText(item.status)}
             </Chip>
           </View>
 
-          <Text className="text-[#22577a] mb-2">{item.description}</Text>
+          <Text className="text-[#22577a] mb-2">
+            {item.description
+              ? item.description.charAt(0).toUpperCase() +
+                item.description.slice(1)
+              : ""}
+          </Text>
 
           <View className="mb-2">
             <Text className="text-sm text-[#22577a]">
@@ -158,21 +168,19 @@ export default function ProjectList() {
         </View>
 
         {/* Recent Projects Section */}
-        <Card className="mb-4">
-          <Card.Title
-            title={`Recent ${projectType} Projects`}
-            titleStyle={{ color: "#22577a", fontWeight: "bold" }}
-            right={(props) => (
-              <IconButton
-                {...props}
-                icon={isProjectsExpanded ? "chevron-up" : "chevron-down"}
-                onPress={() => setIsProjectsExpanded(!isProjectsExpanded)}
-                iconColor="#22577a"
-              />
-            )}
-          />
+        <View className="mb-4">
+          <View className="flex-row justify-between items-center mb-3">
+            <Text className="text-xl font-bold text-[#22577a]">
+              Recent {projectType} Projects
+            </Text>
+            <IconButton
+              icon={isProjectsExpanded ? "chevron-up" : "chevron-down"}
+              onPress={() => setIsProjectsExpanded(!isProjectsExpanded)}
+              iconColor="#22577a"
+            />
+          </View>
           {isProjectsExpanded && (
-            <Card.Content>
+            <>
               {loading ? (
                 <View className="justify-center items-center py-8">
                   <ActivityIndicator
@@ -205,26 +213,24 @@ export default function ProjectList() {
                   </Text>
                 </View>
               )}
-            </Card.Content>
+            </>
           )}
-        </Card>
+        </View>
 
         {/* Project Summary/Statistics Section */}
-        <Card>
-          <Card.Title
-            title="Project Summary"
-            titleStyle={{ color: "#22577a", fontWeight: "bold" }}
-            right={(props) => (
-              <IconButton
-                {...props}
-                icon={isStatsExpanded ? "chevron-up" : "chevron-down"}
-                onPress={() => setIsStatsExpanded(!isStatsExpanded)}
-                iconColor="#22577a"
-              />
-            )}
-          />
+        <View>
+          <View className="flex-row justify-between items-center mb-3">
+            <Text className="text-xl font-bold text-[#22577a]">
+              Project Summary
+            </Text>
+            <IconButton
+              icon={isStatsExpanded ? "chevron-up" : "chevron-down"}
+              onPress={() => setIsStatsExpanded(!isStatsExpanded)}
+              iconColor="#22577a"
+            />
+          </View>
           {isStatsExpanded && (
-            <Card.Content>
+            <View className="bg-white rounded-lg p-4">
               <View className="flex-row justify-between mb-2">
                 <Text className="text-[#22577a]">Total Projects:</Text>
                 <Text className="font-bold text-[#22577a]">
@@ -259,9 +265,9 @@ export default function ProjectList() {
                   }
                 </Text>
               </View>
-            </Card.Content>
+            </View>
           )}
-        </Card>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

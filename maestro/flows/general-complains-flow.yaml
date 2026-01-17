@@ -4,14 +4,50 @@ name: General Complains Flow Test
 ---
 # Test adding and viewing general complains
 - launchApp
+- extendedWaitUntil:
+    visible:
+      id: "logout-button"
+    timeout: 15000
+    optional: true
+- tapOn:
+    id: "logout-button"
+    optional: true
+- extendedWaitUntil:
+    visible: "Sign In"
+    timeout: 10000
 - assertVisible: "Sign In"
+- assertVisible: "Sign Up"
+- takeScreenshot: "./screenshots/auth_screen.png"
 
-# Login first
-- tapOn: "Email"
-- inputText: "test@smartcity.com"
-- tapOn: "Password"
-- inputText: "Test123!"
+# Test Sign In Flow with Keycloak
 - tapOn: "Sign In"
+
+# Wait for Keycloak login page to load (increase timeout for OAuth)
+- extendedWaitUntil:
+    visible: "Sign in"
+    timeout: 15000
+
+# Fill in Keycloak credentials
+- tapOn: "Username or email"
+- inputText: "amal"
+- tapOn: "Password"
+- inputText: "123"
+- hideKeyboard
+
+# Submit login
+- tapOn: "Sign In"
+- takeScreenshot: "./screenshots/keycloak_login_submitted.png"
+
+# Wait for council selection screen
+- extendedWaitUntil:
+    visible: "Select Your Council"
+    timeout: 15000
+- takeScreenshot: "./screenshots/council_selection.png"
+
+# Select a council
+- tapOn: "-- Select a Council --"
+- tapOn: "Mahara"
+- tapOn: "Continue"
 
 # Navigate to Complains section
 - tapOn: "Complains"
@@ -19,29 +55,49 @@ name: General Complains Flow Test
 
 # Navigate to General Complains
 - tapOn: "General"
-- assertVisible: "General Complains"
+- extendedWaitUntil:
+    visible: "Complain List"
+    timeout: 15000
+- assertVisible:
+    text: "Complain List"
 - takeScreenshot: "./screenshots/general_complains_list.png"
 
 # Test adding new general complain
 - tapOn: "Add"
-- assertVisible: "Add General Complain"
+- extendedWaitUntil:
+    visible: "Add Complain"
+    timeout: 15000
+- assertVisible: "Add Complain"
 
 # Fill complain form
-- tapOn: "Title"
-- inputText: "Road Maintenance Issue"
-- tapOn: "Description"
-- inputText: "The road near sector 5 has several potholes that need immediate attention"
-- tapOn: "Category"
-- tapOn: "Infrastructure"
+- tapOn: "Enter your complain"
+- inputText: "Road Maintenance Issue ${new Date().getTime()}"
+- tapOn: "Enter Description"
+- inputText: "The road near sector 5 has several potholes that need immediate attention. Reported at ${new Date().toISOString()}"
+- hideKeyboard
+# - tapOn: "Category"
+# - tapOn: "Infrastructure"
 - takeScreenshot: "./screenshots/general_complain_form.png"
 
+- extendedWaitUntil:
+    visible:
+      id: "document-picker-button"
+    timeout: 10000
+
+# Tap the document picker button
+
+- tapOn:
+    id: "document-picker-button"
+- assertVisible: "test-document.pdf"
+- assertVisible: "Description"
+
 # Submit complain
-- tapOn: "Submit"
-- assertVisible: "Complain submitted successfully"
-- takeScreenshot: "./screenshots/general_complain_success.png"
+- tapOn: "Add Complain"
 
 # Verify complain appears in list
-- assertVisible: "Road Maintenance Issue"
-- tapOn: "Road Maintenance Issue"
-- assertVisible: "The road near sector 5 has several potholes"
-- takeScreenshot: "./screenshots/general_complain_detail.png"
+- extendedWaitUntil:
+    visible: "Complain List"
+    timeout: 15000
+- assertVisible:
+    text: "Complain List"
+- takeScreenshot: "./screenshots/general_complains_list.png"

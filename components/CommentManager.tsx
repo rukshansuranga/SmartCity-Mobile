@@ -23,6 +23,7 @@ const CommentManager: React.FC<CommentManagerProps> = ({
         size={20}
         onPress={() => setModalVisible(true)}
         accessibilityLabel="Open comments"
+        testID="comment-button"
       />
       <CommentModal
         visible={modalVisible}

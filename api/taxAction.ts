@@ -36,3 +36,11 @@ export async function getQuarterlyTaxByResidentId(
 ): Promise<ApiResponse<QuarterlyTaxByResidentDto[]>> {
   return fetchWrapper.get(`tax/quarterly-tax/${residentId}`);
 }
+
+export async function resetArrearsRecoveryStatus(
+  arrearsIds: number[]
+): Promise<ApiResponse<{ updatedCount: number; arrearsIds: number[] }>> {
+  return fetchWrapper.post(`tax/reset-arrears-status`, {
+    ArrearsIds: arrearsIds,
+  });
+}

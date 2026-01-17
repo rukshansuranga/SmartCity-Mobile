@@ -1,0 +1,109 @@
+---
+appId: com.rukshansuranga.smartcity
+name: General Complains Flow Test with Fixtures
+---
+# Initialize test fixture data
+- runScript: ../../scripts/initGeneralComplainTest.js
+
+# Test adding and viewing general complains
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "logout-button"
+    timeout: 15000
+    optional: true
+- tapOn:
+    id: "logout-button"
+    optional: true
+- extendedWaitUntil:
+    visible: "Sign In"
+    timeout: 10000
+- assertVisible: "Sign In"
+- assertVisible: "Sign Up"
+- takeScreenshot: "./screenshots/auth_screen.png"
+
+# Test Sign In Flow with Keycloak
+- tapOn: "Sign In"
+
+# Wait for Keycloak login page to load (increase timeout for OAuth)
+- extendedWaitUntil:
+    visible: "Sign in"
+    timeout: 15000
+
+# Fill in Keycloak credentials
+- tapOn: "Username or email"
+- inputText: "amal"
+- tapOn: "Password"
+- inputText: "123"
+- hideKeyboard
+
+# Submit login
+- tapOn: "Sign In"
+- takeScreenshot: "./screenshots/keycloak_login_submitted.png"
+
+# Wait for council selection screen
+- extendedWaitUntil:
+    visible: "Select Your Council"
+    timeout: 15000
+- takeScreenshot: "./screenshots/council_selection.png"
+
+# Select a council
+- tapOn: "-- Select a Council --"
+- tapOn: "Mahara"
+- tapOn: "Continue"
+
+# Navigate to Complains section
+- tapOn: "Complains"
+- assertVisible: "Complains"
+
+# Navigate to General Complains
+- tapOn: "General"
+- extendedWaitUntil:
+    visible: "Complain List"
+    timeout: 15000
+- assertVisible:
+    text: "Complain List"
+- takeScreenshot: "./screenshots/general_complains_list.png"
+
+# Test adding new general complain
+- tapOn: "Add"
+- extendedWaitUntil:
+    visible: "Add Complain"
+    timeout: 15000
+- assertVisible: "Add Complain"
+
+# Fill complain form using test data
+- tapOn: "Enter your complain"
+- inputText: "${output.complainSubject}"
+- tapOn: "Enter Description"
+- inputText: "${output.complainDetail}"
+- hideKeyboard
+- takeScreenshot: "./screenshots/general_complain_form.png"
+
+- extendedWaitUntil:
+    visible:
+      id: "document-picker-button"
+    timeout: 10000
+
+# Tap the document picker button
+- tapOn:
+    id: "document-picker-button"
+- assertVisible: "test-document.pdf"
+- assertVisible: "Description"
+
+# Submit complain
+- tapOn: "Add Complain"
+
+# Wait for success and capture complain ID if visible
+- extendedWaitUntil:
+    visible: "Complain List"
+    timeout: 15000
+- assertVisible:
+    text: "Complain List"
+- takeScreenshot: "./screenshots/general_complains_list_after_add.png"
+
+# Save test fixture to backend
+- runScript: ../../scripts/saveGeneralComplainFixture.js
+
+# Verify we're back at the complain list (complain was created successfully)
+- assertVisible: "Complain List"

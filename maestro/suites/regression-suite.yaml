@@ -1,0 +1,26 @@
+---
+name: Regression Test Suite
+---
+# Full regression test suite for SmartCity Mobile App
+
+# Authentication flows
+- flows/auth-flow.yaml
+
+# User management
+- flows/user-profile-flow.yaml
+
+# Complains module - with comments integration
+- flows/general-complains-with-comments-flow.yaml
+- flows/lightpost-complains-with-comments-flow.yaml
+
+# Projects module
+- flows/projects-flow.yaml
+
+# Garbage management
+- flows/garbage-flow.yaml
+
+# Navigation
+- flows/navigation-flow.yaml
+
+# Error handling
+- flows/error-handling-flow.yaml

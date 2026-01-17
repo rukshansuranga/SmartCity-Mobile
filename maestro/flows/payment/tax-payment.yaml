@@ -1,0 +1,161 @@
+---
+appId: com.rukshansuranga.smartcity
+name: Tax Payment Flow Test
+---
+# Initialize test and reset arrears status
+- runScript: ../../scripts/initTaxPaymentTest.js
+
+# Launch app and handle logout if needed
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "logout-button"
+    timeout: 15000
+    optional: true
+- tapOn:
+    id: "logout-button"
+    optional: true
+
+# Wait for auth screen
+- extendedWaitUntil:
+    visible: "Sign In"
+    timeout: 10000
+- assertVisible: "Sign In"
+- assertVisible: "Sign Up"
+- takeScreenshot: "./screenshots/tax_payment_auth_screen.png"
+
+# Test Sign In Flow with Keycloak
+- tapOn: "Sign In"
+
+# Wait for Keycloak login page to load
+- extendedWaitUntil:
+    visible: "Sign in"
+    timeout: 15000
+
+# Fill in Keycloak credentials (amal, 123)
+- tapOn: "Username or email"
+- inputText: "amal"
+- tapOn: "Password"
+- inputText: "123"
+- hideKeyboard
+
+# Submit login
+- tapOn: "Sign In"
+- takeScreenshot: "./screenshots/tax_payment_keycloak_login.png"
+
+# Wait for council selection screen
+- extendedWaitUntil:
+    visible: "Select Your Council"
+    timeout: 15000
+- takeScreenshot: "./screenshots/tax_payment_council_selection.png"
+
+# Select Mahara council
+- tapOn: "-- Select a Council --"
+- tapOn: "Mahara"
+- tapOn: "Continue"
+
+# Wait for home screen to load
+- extendedWaitUntil:
+    visible: "Home"
+    timeout: 10000
+- takeScreenshot: "./screenshots/tax_payment_home_screen.png"
+
+# Navigate to Tax section
+- tapOn: "Tax"
+
+# Wait for tax tabs to load (Summary, Units, History, Payment)
+- extendedWaitUntil:
+    visible: "Summary"
+    timeout: 10000
+- assertVisible: "Units"
+- assertVisible: "History"
+- assertVisible: "Payment"
+- takeScreenshot: "./screenshots/tax_payment_tax_screen_with_tabs.png"
+
+# Click Payment tab button (use index or id if multiple Payment text exists)
+- tapOn:
+    text: "Payment"
+    index: 0
+
+- extendedWaitUntil:
+    visible: "LP002-U01"
+    timeout: 10000
+- takeScreenshot: "./screenshots/tax_payment_payment_tab.png"
+
+# Scroll up to see the proceed to payment button
+- scroll
+
+# Select LP002-U01 checkbox
+- tapOn:
+    text: "LP002-U01"
+    index: 0
+- takeScreenshot: "./screenshots/tax_payment_selected_checkbox.png"
+
+# Click Payments button
+- tapOn:
+    text: "Payments"
+    index: 0
+- takeScreenshot: "./screenshots/tax_payment_after_payments_button.png"
+
+# Scroll up to see the Proceed to Payment button
+- scroll
+
+# Wait for Proceed to Payment button to be visible
+- extendedWaitUntil:
+    visible: "Proceed to Payment"
+    timeout: 5000
+    optional: true
+
+    # Click Proceed to Payment button
+- tapOn:
+    text: "Proceed to Payment"
+    index: 0
+- takeScreenshot: "./screenshots/proceed_to_payment_button.png"
+
+# Wait for Stripe payment form to load
+- extendedWaitUntil:
+    visible: "Card number"
+    timeout: 10000
+- takeScreenshot: "./screenshots/stripe_payment_form.png"
+
+# Fill in card number (test card: 4242 4242 4242 4242)
+- tapOn: "Card number"
+- inputText: "4242424242424242"
+- takeScreenshot: "./screenshots/stripe_card_filled.png"
+
+# Fill in expiry date - tap after card number to move to next field
+- tapOn:
+    point: "50%,60%"
+- inputText: "1225"
+- takeScreenshot: "./screenshots/stripe_expiry_filled.png"
+
+# Fill in CVC
+- tapOn:
+    point: "50%,70%"
+- inputText: "123"
+
+- takeScreenshot: "./screenshots/stripe_cvc_filled.png"
+
+# Wait for UI to settle - removed hideKeyboard as it closes the Stripe modal
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# Take screenshot to see where the Pay button is located
+- takeScreenshot: "./screenshots/before_pay_button_tap.png"
+
+# Tap Pay button by coordinates
+- tapOn:
+    point: "50%,85%"
+
+# Immediately take screenshot to see if modal is still there
+- takeScreenshot: "./screenshots/immediately_after_tap.png"
+
+# Now wait for payment to complete - no other UI interaction
+- extendedWaitUntil:
+    visible: "Payment Successful! 🎉"
+    timeout: 60000
+- takeScreenshot: "./screenshots/payment_success_alert.png"
+
+# Click OK button on success alert
+- tapOn: "OK"
+- takeScreenshot: "./screenshots/tax_payment_final_state.png"

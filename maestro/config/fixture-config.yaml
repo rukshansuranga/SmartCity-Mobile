@@ -1,0 +1,133 @@
+# Test Fixture Configuration
+#
+# This file contains environment-specific configuration for test fixture management.
+# Copy this file and customize for different environments (local, dev, staging, prod).
+
+# API Configuration
+fixtureApi:
+  # Base URL for the test fixture API
+  baseURL: http://localhost:5000
+
+  # API endpoint path
+  endpoint: /api/testfixture
+
+  # Request timeout in milliseconds
+  timeout: 10000
+
+  # Retry configuration
+  retry:
+    enabled: true
+    maxRetries: 3
+    retryDelay: 1000
+
+# Environment Settings
+environment:
+  # Environment name (local, dev, staging, prod)
+  name: local
+
+  # Enable/disable fixture saving
+  enabled: true
+
+  # Fail tests if fixture save fails
+  failOnFixtureError: false
+
+# Test Data Configuration
+testData:
+  # Prefix for test IDs
+  testIdPrefix: E2E
+
+  # Test user credentials
+  defaultUser:
+    username: amal
+    password: "123"
+
+  # Default council for tests
+  defaultCouncil: Mahara
+
+  # Test data templates
+  templates:
+    generalComplain:
+      subjectPrefix: "Road Maintenance Issue"
+      detailTemplate: "The road near sector 5 has several potholes that need immediate attention."
+
+    lightPostComplain:
+      subjectPrefix: "Street Light Issue"
+      detailTemplate: "Light post is not functioning properly."
+
+    projectComplain:
+      subjectPrefix: "Project Issue"
+      detailTemplate: "Construction project has quality issues."
+
+# Logging Configuration
+logging:
+  # Enable verbose logging
+  verbose: true
+
+  # Log fixture save success
+  logSuccess: true
+
+  # Log fixture save failures
+  logFailures: true
+
+# Screenshot Configuration
+screenshots:
+  # Enable screenshots
+  enabled: true
+
+  # Screenshot directory
+  directory: ./maestro/screenshots
+
+  # Save screenshots on fixture save
+  saveOnFixtureSave: true
+
+# Additional Metadata
+metadata:
+  # Always include these fields in fixtures
+  defaultFields:
+    - testType: e2e-mobile
+    - platform: mobile
+    - createdBy: maestro
+
+---
+# Development Environment Override
+# Uncomment and modify for development environment
+
+# environment:
+#   name: dev
+#   enabled: true
+
+# fixtureApi:
+#   baseURL: http://dev-api.example.com:5000
+
+---
+# Staging Environment Override
+# Uncomment and modify for staging environment
+
+# environment:
+#   name: staging
+#   enabled: true
+
+# fixtureApi:
+#   baseURL: http://staging-api.example.com
+
+# testData:
+#   defaultUser:
+#     username: staging-user
+#     password: staging-pass
+
+---
+# Production Environment Override
+# Uncomment and modify for production environment
+# WARNING: Be careful with production fixtures!
+
+# environment:
+#   name: prod
+#   enabled: false  # Disabled by default for safety
+
+# fixtureApi:
+#   baseURL: http://prod-api.example.com
+
+# testData:
+#   defaultUser:
+#     username: prod-test-user
+#     password: prod-test-pass

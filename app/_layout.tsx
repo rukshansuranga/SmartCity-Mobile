@@ -101,6 +101,7 @@ function MinimalHeader({
         </Link>
         <IconButton
           icon="logout"
+          testID="logout-button"
           size={24}
           onPress={logOut}
           style={{

@@ -233,6 +233,8 @@ export default function ManageGeneralComplain() {
                       value={value}
                       onChangeText={onChange}
                       onBlur={onBlur}
+                      multiline
+                      numberOfLines={4}
                       style={{
                         color: "#22577a",
                         backgroundColor: "#f6fff8",
@@ -240,6 +242,9 @@ export default function ManageGeneralComplain() {
                         borderColor: "#57cc99",
                         borderWidth: 2,
                         paddingHorizontal: 12,
+                        paddingVertical: 8,
+                        textAlignVertical: "top",
+                        minHeight: 100,
                       }}
                     />
                   )}

@@ -1,0 +1,47 @@
+---
+appId: com.rukshansuranga.smartcity
+name: Comment Flow (Reusable)
+---
+# Reusable comment flow - can be used after any entity is created
+# Prerequisites: Should be on a screen where comment button is visible
+
+# Test Opening Comment Modal
+- tapOn:
+    id: "comment-button"
+- extendedWaitUntil:
+    visible: "Comments"
+    timeout: 10000
+- assertVisible: "Comments"
+- takeScreenshot: "./screenshots/comment_modal_opened.png"
+
+# Test Adding a Comment
+- tapOn: "Write a comment..."
+- inputText: "Test comment added at ${new Date().toISOString()}"
+- hideKeyboard
+- takeScreenshot: "./screenshots/comment_text_entered.png"
+
+# Submit comment
+- tapOn:
+    id: "send-comment-button"
+
+# Wait for comment to appear in list
+- extendedWaitUntil:
+    visible: "Test comment"
+    timeout: 10000
+- assertVisible: "Test comment"
+- takeScreenshot: "./screenshots/comment_added.png"
+
+# Test Viewing Comments
+- scrollUntilVisible:
+    element: "Test comment"
+    direction: DOWN
+    timeout: 5000
+- takeScreenshot: "./screenshots/comment_list.png"
+
+# Close comment modal
+- tapOn:
+    id: "close-comment-modal"
+- extendedWaitUntil:
+    notVisible: "Comments"
+    timeout: 5000
+- takeScreenshot: "./screenshots/comment_modal_closed.png"

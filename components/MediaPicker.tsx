@@ -1,9 +1,10 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { Audio, Video } from "expo-av";
+import { Audio } from "expo-av";
+import { VideoView, useVideoPlayer } from "expo-video";
 
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Alert,
   FlatList,
@@ -17,6 +18,62 @@ import {
 import { deleteAttachment } from "../api/attachmentActions";
 import { AttachmentUpload } from "../types";
 import AttachmentThumbnail from "./AttachmentThumbnail";
+
+// Separate component for video items to properly use hooks
+const VideoItem: React.FC<{
+  uri: string;
+  fileName: string;
+  onRemove: () => void;
+}> = ({ uri, fileName, onRemove }) => {
+  const player = useVideoPlayer(uri, (player) => {
+    player.loop = false;
+    player.muted = false;
+  });
+
+  return (
+    <View
+      style={{
+        width: "100%",
+        aspectRatio: 16 / 9,
+        marginBottom: 16,
+        position: "relative",
+      }}
+    >
+      <VideoView
+        player={player}
+        style={{
+          width: "100%",
+          height: "100%",
+          borderRadius: 12,
+          backgroundColor: "#000",
+        }}
+        contentFit="contain"
+        nativeControls={true}
+        allowsFullscreen
+        allowsPictureInPicture
+      />
+      {/* Delete button at top right */}
+      <TouchableOpacity
+        style={{
+          position: "absolute",
+          top: 8,
+          right: 8,
+          backgroundColor: "#f95d6a",
+          borderRadius: 16,
+          padding: 6,
+          zIndex: 2,
+        }}
+        onPress={onRemove}
+        accessibilityLabel="Remove video"
+      >
+        <MaterialIcons name="delete" size={20} color="#fff" />
+      </TouchableOpacity>
+      <Text className="text-xs text-center mt-1 text-[#22577a]">
+        {fileName || "Video"}
+      </Text>
+    </View>
+  );
+};
 
 type Props = {
   attachments: AttachmentUpload[];
@@ -212,6 +269,45 @@ const MediaPicker: React.FC<Props> = ({
 
   // Pick a document (any file)
   const pickDocument = async () => {
+    // Check if we're in test mode
+    if (__DEV__ && process.env.EXPO_PUBLIC_TEST_MODE === "true") {
+      // Mock response for Maestro testing
+      const mockResult = {
+        canceled: false,
+        assets: [
+          {
+            uri: "file:///mock/test-document.pdf",
+            name: "test-document.pdf",
+            mimeType: "application/pdf",
+            size: 1024,
+          },
+        ],
+      };
+
+      if (
+        !mockResult.canceled &&
+        mockResult.assets &&
+        mockResult.assets.length > 0
+      ) {
+        const asset = mockResult.assets[0];
+        const fileName = asset.name || "File";
+        const fileType = asset.mimeType || "file";
+        const file = {
+          uri: asset.uri,
+          name: fileName,
+          type: fileType,
+        };
+        onChange([
+          ...attachments,
+          {
+            file,
+            description: "",
+          },
+        ]);
+      }
+      return;
+    }
+
     const result = await DocumentPicker.getDocumentAsync({
       copyToCacheDirectory: true,
     });
@@ -283,6 +379,7 @@ const MediaPicker: React.FC<Props> = ({
   };
 
   function getUri(item) {
+    console.log("Getting URI for item:", item.sourceUrl, item.file.uri);
     return item.attachmentId ? item.sourceUrl : item.file.uri;
   }
 
@@ -331,6 +428,7 @@ const MediaPicker: React.FC<Props> = ({
           className={`max-w-[110px] bg-[#57cc99] rounded-xl ml-1.5 shadow-md items-center py-2 px-3 ${attachments.length >= maxAttachments ? "opacity-50" : ""}`}
           onPress={pickDocument}
           disabled={attachments.length >= maxAttachments}
+          testID="document-picker-button"
         >
           <View className="flex-row items-center justify-center">
             <MaterialIcons name="attach-file" size={24} color="#fff" />
@@ -490,45 +588,11 @@ const MediaPicker: React.FC<Props> = ({
             data={attachments.filter((att) => att.attachmentType === "Video")}
             keyExtractor={(_, idx) => `video-${idx}`}
             renderItem={({ item, index }) => (
-              <View
-                style={{
-                  width: "100%",
-                  aspectRatio: 16 / 9,
-                  marginBottom: 16,
-                  position: "relative",
-                }}
-              >
-                <Video
-                  source={{ uri: getUri(item) }}
-                  useNativeControls
-                  resizeMode={"contain" as any}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    borderRadius: 12,
-                    backgroundColor: "#000",
-                  }}
-                />
-                {/* Delete button at top right */}
-                <TouchableOpacity
-                  style={{
-                    position: "absolute",
-                    top: 8,
-                    right: 8,
-                    backgroundColor: "#f95d6a",
-                    borderRadius: 16,
-                    padding: 6,
-                    zIndex: 2,
-                  }}
-                  onPress={() => removeVideo(index, item?.attachmentId)}
-                  accessibilityLabel="Remove video"
-                >
-                  <MaterialIcons name="delete" size={20} color="#fff" />
-                </TouchableOpacity>
-                <Text className="text-xs text-center mt-1 text-[#22577a]">
-                  {item.file?.name || "Video"}
-                </Text>
-              </View>
+              <VideoItem
+                uri={getUri(item)}
+                fileName={item.file?.name || "Video"}
+                onRemove={() => removeVideo(index, item?.attachmentId)}
+              />
             )}
             horizontal={false}
             showsVerticalScrollIndicator={false}

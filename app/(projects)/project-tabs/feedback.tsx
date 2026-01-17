@@ -58,7 +58,7 @@ export default function Feedback() {
           </Text>
         </View>
         <CommentSection
-          entityType={EntityType.ProjectComplain}
+          entityType={EntityType.Project}
           entityId={currentProjectId}
           isPrivate={false}
         />

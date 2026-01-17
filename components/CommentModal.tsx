@@ -49,6 +49,7 @@ export const CommentModal: React.FC<CommentModalProps> = ({
               size={18}
               mode="contained"
               onPress={onClose}
+              testID="close-comment-modal"
             />
           </View>
 
@@ -62,6 +63,7 @@ export const CommentModal: React.FC<CommentModalProps> = ({
               entityType={entityType}
               entityId={entityId || ""}
               isPrivate={isPrivate}
+              onCommentAdded={onClose}
             />
           </View>
         </View>

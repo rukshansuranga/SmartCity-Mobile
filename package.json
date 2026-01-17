@@ -9,16 +9,20 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "test:maestro": "maestro test maestro/",
-    "test:smoke": "maestro test maestro/smoke/",
-    "test:flows": "maestro test maestro/flows/",
-    "test:maestro:watch": "maestro test maestro/ --continuous",
     "test:auth": "maestro test maestro/flows/auth-flow.yaml",
     "test:complains": "maestro test maestro/flows/general-complains-flow.yaml",
     "test:lightpost": "maestro test maestro/flows/lightpost-complains-flow.yaml",
     "test:projects": "maestro test maestro/flows/projects-flow.yaml",
     "test:garbage": "maestro test maestro/flows/garbage-flow.yaml",
-    "test:navigation": "maestro test maestro/flows/navigation-flow.yaml"
+    "test:navigation": "maestro test maestro/flows/navigation-flow.yaml",
+    "test:smoke": "maestro test maestro/suites/smoke-suite.yaml",
+    "test:complains-suite": "maestro test maestro/suites/complains-suite.yaml",
+    "test:regression": "maestro test maestro/suites/regression-suite.yaml",
+    "test:all-flows": "maestro test maestro/flows",
+    "test:smoke:watch": "maestro test maestro/suites/smoke-suite.yaml --continuous",
+    "test:ci": "maestro test maestro/suites/smoke-suite.yaml --format=junit --output=./test-results",
+    "test:fixtures:create-general-complain": "maestro test maestro/flows/general-complain/general-complains-with-fixtures.yaml",
+    "test:fixtures:project": "maestro test maestro/flows/project-complains-with-fixtures.yaml"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
@@ -29,6 +33,7 @@
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.1.6",
     "@stripe/stripe-react-native": "^0.55.1",
+    "axios": "^1.6.2",
     "expo": "~53.0.17",
     "expo-auth-session": "~6.2.1",
     "expo-av": "~15.1.7",
@@ -69,7 +74,8 @@
     "react-native-webview": "13.13.5",
     "zod": "^4.0.14",
     "zustand": "^5.0.7",
-    "expo-crypto": "~14.1.5"
+    "expo-crypto": "~14.1.5",
+    "expo-video": "~2.2.2"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
