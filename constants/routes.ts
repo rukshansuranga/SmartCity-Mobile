@@ -6,10 +6,12 @@ export const ROUTES = {
   HOME: "/home" as const,
   SIGN_IN: "/auth" as const,
   COMPLAINS: "/(complains)" as const,
-  GARBAGE: "/(garbage)" as const,
+  INFRASTRUCTURE: "/(infrastructure)" as const,
+  NEWS: "/(news)" as const,
   PROJECTS: "/(projects)" as const,
   TAX: "/(tax)" as const,
   ADVISER: "/(adviser)" as const,
+  BUDGET: "/(budget)" as const,
   PROFILE: "/editUser" as const,
   NOTIFICATIONS: "/(notification)/NotificationList" as const,
 } as const;

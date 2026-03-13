@@ -1,9 +1,10 @@
+import { getCouncilByName } from "@/api/miscAction";
 import { useAuthStore } from "@/stores/authStore";
 import { Council } from "@/types";
 import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { Button } from "react-native-paper";
 
 export default function SelectCouncil() {
@@ -11,20 +12,49 @@ export default function SelectCouncil() {
   const router = useRouter();
   const [selectedValue, setSelectedValue] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const handleSelectCouncil = () => {
+  const handleSelectCouncil = async () => {
     if (!selectedValue) {
       setError("Please select a council to continue");
       return;
     }
 
-    const selectedCouncil = councils?.find((c) => c.value === selectedValue);
-    if (selectedCouncil) {
-      console.log("[SelectCouncil] Council selected:", selectedCouncil);
-      setSelectedCouncil(selectedCouncil);
-      router.replace("/home");
-    } else {
-      setError("Invalid council selection");
+    setLoading(true);
+    setError("");
+
+    try {
+      // Fetch full council details from backend
+      const response = await getCouncilByName(selectedValue);
+
+      if (response.isSuccess && response.data) {
+        const councilData = response.data;
+
+        console.log(
+          "[SelectCouncil] Council data received from API:",
+          councilData,
+        );
+
+        // Create council object with full details
+        const fullCouncil: Council = {
+          value: councilData.councilId,
+          label: councilData.councilName,
+          city: councilData.city,
+          latitude: councilData.latitude,
+          longitude: councilData.longitude,
+        };
+
+        console.log("[SelectCouncil] Council details fetched:", fullCouncil);
+        setSelectedCouncil(fullCouncil);
+        router.replace("/home");
+      } else {
+        setError(response.message || "Failed to fetch council details");
+      }
+    } catch (err) {
+      console.error("[SelectCouncil] Error fetching council:", err);
+      setError("Failed to load council details. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -76,8 +106,13 @@ export default function SelectCouncil() {
           onPress={handleSelectCouncil}
           style={styles.button}
           contentStyle={styles.buttonContent}
+          disabled={loading}
         >
-          <Text style={styles.buttonText}>Continue</Text>
+          {loading ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text style={styles.buttonText}>Continue</Text>
+          )}
         </Button>
       </View>
     </View>

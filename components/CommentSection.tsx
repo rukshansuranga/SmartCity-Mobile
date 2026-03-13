@@ -8,7 +8,14 @@ import { CommentType, EntityType } from "@/enums/enum";
 import { useAuthStore } from "@/stores/authStore";
 import { Comment } from "@/types";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Keyboard,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { Button, IconButton, MD2Colors, TextInput } from "react-native-paper";
 import Toast from "react-native-toast-message";
 
@@ -66,7 +73,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
             style: "destructive",
             onPress: () => onDelete(comment.commentId!),
           },
-        ]
+        ],
       );
     }
   };
@@ -246,6 +253,8 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
       return;
     }
 
+    // Dismiss keyboard before submitting
+    Keyboard.dismiss();
     setIsSubmitting(true);
     try {
       const newComment: Partial<Comment> = {
@@ -306,6 +315,8 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
   const handleUpdateComment = async () => {
     if (!editingComment || !newCommentText.trim()) return;
 
+    // Dismiss keyboard before submitting
+    Keyboard.dismiss();
     setIsSubmitting(true);
     try {
       const updatedComment: Partial<Comment> = {
@@ -396,7 +407,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
   };
 
   const getCommentTypeFromEntityType = (
-    entityType: EntityType
+    entityType: EntityType,
   ): CommentType => {
     switch (entityType) {
       case EntityType.GeneralComplain:
@@ -423,25 +434,33 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
   }
 
   return (
-    <View className="flex-1">
-      {/* Comments List - Takes 4/6 of available space */}
-      <View className="h-4/6 ">
+    <ScrollView
+      className="flex-1"
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="always"
+    >
+      {/* Comments List */}
+      <View className="mb-3">
         {comments.length > 0 ? (
-          <ScrollView
-            contentContainerStyle={{ paddingVertical: 4 }}
-            showsVerticalScrollIndicator={false}
-          >
-            {comments.map((comment) => (
-              <CommentItem
-                key={comment.commentId}
-                comment={comment}
-                onEdit={handleEditComment}
-                onDelete={handleDeleteComment}
-                canEdit={true}
-                canDelete={true}
-              />
-            ))}
-          </ScrollView>
+          <View style={{ maxHeight: 300 }}>
+            <ScrollView
+              contentContainerStyle={{ paddingVertical: 4 }}
+              showsVerticalScrollIndicator={true}
+              nestedScrollEnabled={true}
+              keyboardShouldPersistTaps="handled"
+            >
+              {comments.map((comment) => (
+                <CommentItem
+                  key={comment.commentId}
+                  comment={comment}
+                  onEdit={handleEditComment}
+                  onDelete={handleDeleteComment}
+                  canEdit={true}
+                  canDelete={true}
+                />
+              ))}
+            </ScrollView>
+          </View>
         ) : (
           <View className="items-center justify-center py-8">
             <Text className="text-[#22577a] text-center">
@@ -451,8 +470,8 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
         )}
       </View>
 
-      {/* Add/Edit Comment Section - Takes 2/6 of available space */}
-      <View className="h-2/6 ">
+      {/* Add/Edit Comment Section - Fixed at bottom */}
+      <View>
         <Text className="font-semibold text-lg text-[#22577a] mb-2">
           {editingComment ? "Edit Comment" : "Add Comment"}
         </Text>
@@ -464,9 +483,10 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
             onChangeText={setNewCommentText}
             placeholder="Write a comment..."
             testID="comment-input"
+            numberOfLines={3}
             style={{
-              minHeight: 100,
-              maxHeight: 100,
+              minHeight: 80,
+              maxHeight: 120,
             }}
             contentStyle={{
               paddingTop: 8,
@@ -479,15 +499,21 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
             textColor="#22577a"
             placeholderTextColor="#22577a80"
           />
-          <View className="flex-row justify-end mt-2" style={{ gap: 8 }}>
+          <View
+            className="flex-row justify-end items-center mt-3"
+            style={{ gap: 10 }}
+          >
             {editingComment && (
               <Button
                 mode="outlined"
-                style={{ borderColor: "#38a3a5" }}
-                labelStyle={{ color: "#38a3a5", fontWeight: "bold" }}
+                style={{ borderColor: "#38a3a5", borderWidth: 2 }}
+                labelStyle={{
+                  color: "#38a3a5",
+                  fontWeight: "bold",
+                  fontSize: 14,
+                }}
                 onPress={cancelEdit}
                 disabled={isSubmitting}
-                compact
                 testID="cancel-comment-button"
               >
                 Cancel
@@ -497,21 +523,19 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
             <Button
               icon={editingComment ? "check" : "plus"}
               mode="contained"
-              style={{ backgroundColor: "#38a3a5" }}
-              labelStyle={{ color: "#fff", fontWeight: "bold" }}
+              style={{ backgroundColor: "#38a3a5", paddingVertical: 2 }}
+              labelStyle={{ color: "#fff", fontWeight: "bold", fontSize: 14 }}
               onPress={editingComment ? handleUpdateComment : handleAddComment}
               disabled={isSubmitting || !newCommentText.trim()}
               loading={isSubmitting}
-              compact
               testID="send-comment-button"
             >
-              {/* {editingComment ? "Update" : "Add"} */}
-              Comment
+              {editingComment ? "Update" : "Add"}
             </Button>
           </View>
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

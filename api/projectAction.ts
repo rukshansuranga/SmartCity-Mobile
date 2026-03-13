@@ -3,7 +3,7 @@ import { ApiResponse, Project, ProjectProgress } from "@/types";
 import { ProjectStatus, ProjectType } from "../enums/enum";
 
 export async function filterProjects(
-  request: projectFilterRequest
+  request: projectFilterRequest,
 ): Promise<ApiResponse<Project[]>> {
   return fetchWrapper.post("project/filter", request);
 }
@@ -11,25 +11,31 @@ export async function filterProjects(
 type projectFilterRequest = {
   type: ProjectType;
   status: ProjectStatus;
-  subject: string | null;
+  name: string | null;
   city: string | null;
-  isRecent: boolean | null;
+  isRecent: boolean;
 };
 
 export async function getRecentProjects(
-  type: ProjectType
+  type: ProjectType,
 ): Promise<ApiResponse<Project[]>> {
   return fetchWrapper.get(`project/recent?type=${type}`);
 }
 
 export async function getProjectDetails(
-  id: string
+  id: string,
 ): Promise<ApiResponse<Project>> {
   return fetchWrapper.get(`project/${id}`);
 }
 
 export async function GetProjectProgressByProjectIdAsync(
-  projectId: string
+  projectId: string,
 ): Promise<ApiResponse<ProjectProgress[]>> {
   return fetchWrapper.get(`project/${projectId}/progress`);
+}
+
+export async function getProjectsByCouncilId(
+  councilId: string,
+): Promise<ApiResponse<Project[]>> {
+  return fetchWrapper.get(`project/council/${councilId}`);
 }

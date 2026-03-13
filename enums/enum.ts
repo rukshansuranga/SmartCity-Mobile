@@ -15,6 +15,7 @@ export enum EntityType {
   ProjectTicket = 7,
   InternalTicket = 8,
   ComplainTicket = 9,
+  InfrastructureComplain = 10,
 }
 export enum WorkpackageStatus {
   New = 0,
@@ -57,6 +58,7 @@ export enum CommentType {
   LightpostComplain,
   ProjectComplain,
   GarbageComplain,
+  InfrastructureComplain,
 }
 
 export enum ProjectProgressApprovedStatus {

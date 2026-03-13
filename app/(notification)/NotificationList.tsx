@@ -56,20 +56,20 @@ export default function NotificationList() {
   }
 
   async function fetchUnreadNotificationCount() {
-    console.log("Fetching unread notification count...");
+    //console.log("Fetching unread notification count...");
     try {
       const count = await getUnreadNotificationCount(userInfo.sub);
       if (!count.isSuccess) {
         console.error(
           "Failed to fetch unread notification count:",
-          count.message
+          count.message,
         );
         updateNotificationCount(0);
         return;
       }
       updateNotificationCount(count.data || 0);
     } catch (error) {
-      console.error("Error fetching unread notification count:", error);
+      //console.error("Error fetching unread notification count:", error);
       updateNotificationCount(0);
       // Toast error is already shown by fetchWrapper
     }
@@ -87,7 +87,7 @@ export default function NotificationList() {
     console.log(
       "Submitting rating for notification:",
       selectedNotification,
-      starRating
+      starRating,
     );
 
     if (!selectedNotification?.complainId || !starRating) return;
@@ -122,7 +122,7 @@ export default function NotificationList() {
         if (!readResult.isSuccess) {
           console.error(
             "Failed to mark notification as read:",
-            readResult.message
+            readResult.message,
           );
         }
       }

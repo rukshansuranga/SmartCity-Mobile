@@ -24,6 +24,9 @@ export enum WorkpackageStatus {
 export type Council = {
   value: string;
   label: string;
+  city?: string;
+  latitude?: number;
+  longitude?: number;
 };
 
 export type TokenPayload = {
@@ -141,17 +144,28 @@ export type NotificationData = {
 export type Project = {
   projectId: number;
   subject: string;
-  description: string;
-  type: ProjectType;
-  status: ProjectStatus;
-  startDate: string;
-  endDate: string;
+  description?: string;
+  type?: ProjectType;
+  status?: ProjectStatus;
+  startDate?: string;
+  endDate?: string;
   city: string;
-  latitude: number;
-  longitude: number;
-  estimatedCost: number;
-  tenderOpeningDate: string;
-  tenderClosingDate: string;
+  location?: string;
+  locationNote?: string;
+  geoJsonGeometry?: string;
+  geometryType?: string; // "Point", "LineString", "Polygon", etc.
+  estimatedCost?: number;
+  budgetItemId?: number;
+  awardedTenderId?: number;
+  progressFrequency?: string;
+  tenderOpeningDate?: string;
+  tenderClosingDate?: string;
+  councilId: string;
+};
+
+export type ProjectWithComplainInfo = Project & {
+  complainCount?: number;
+  hasUserComplained?: boolean;
 };
 
 export type ProjectProgress = {
@@ -350,3 +364,6 @@ export interface QuarterDetailDto {
   discount: number;
   surcharge: number;
 }
+
+// Re-export infrastructure types for convenience
+export * from "./infrastructure";

@@ -13,18 +13,19 @@ export interface ProjectComplainUpdateRequest {
   subject?: string;
   detail?: string;
   status?: number;
+  projectId?: string;
 }
 
 // General Complain Actions
 export async function addGeneralComplain(
-  complain: Partial<GeneralComplain>
+  complain: Partial<GeneralComplain>,
 ): Promise<ApiResponse<GeneralComplain>> {
   return fetchWrapper.post("complain/general", complain);
 }
 
 export async function updateGeneralComplain(
   complainId: number,
-  complain: GeneralComplain
+  complain: GeneralComplain,
 ): Promise<ApiResponse<GeneralComplain>> {
   return fetchWrapper.put(`complain/general/${complainId}`, complain);
 }
@@ -32,21 +33,21 @@ export async function updateGeneralComplain(
 export async function GetGeneralComplainPaging(
   page,
   isPrivate,
-  pageSize = 10
+  pageSize = 10,
 ): Promise<ApiResponse<GeneralComplain[]>> {
   return fetchWrapper.get(
-    `complain/general?pageNumber=${page}&isPrivate=${isPrivate}&pageSize=${pageSize}`
+    `complain/general?pageNumber=${page}&isPrivate=${isPrivate}&pageSize=${pageSize}`,
   );
 }
 
 export async function deleteGeneralComplain(
-  complainId: number
+  complainId: number,
 ): Promise<ApiResponse<void>> {
   return fetchWrapper.del(`complain/general/${complainId}`);
 }
 
 export async function getGeneralComplainById(
-  id: number
+  id: number,
 ): Promise<ApiResponse<GeneralComplain>> {
   console.log("🚀 [DEBUG] Fetching complain data for ID:", id);
   return fetchWrapper.get(`complain/general/${id}`);
@@ -60,7 +61,7 @@ export async function getGeneralComplainById(
  * Purpose: Retrieves all complains for a specific project
  */
 export async function getProjectComplainsByProjectId(
-  projectId: number
+  projectId: number,
 ): Promise<ApiResponse<ProjectComplain[]>> {
   return fetchWrapper.get(`complain/projectcomplains/${projectId}`);
 }
@@ -71,7 +72,7 @@ export async function getProjectComplainsByProjectId(
  * Purpose: Creates a new project complain
  */
 export async function addProjectComplain(
-  complain: ProjectComplainPostRequest
+  complain: ProjectComplainPostRequest,
 ): Promise<ApiResponse<ProjectComplain>> {
   return fetchWrapper.post("complain/projectcomplain", complain);
 }
@@ -83,8 +84,9 @@ export async function addProjectComplain(
  */
 export async function updateProjectComplain(
   complainId: number,
-  complain: ProjectComplainUpdateRequest
+  complain: ProjectComplainUpdateRequest,
 ): Promise<ApiResponse<ProjectComplain>> {
+  console.log("🔄 Updating complain ID:", complainId);
   return fetchWrapper.put(`complain/projectcomplain/${complainId}`, complain);
 }
 
@@ -94,7 +96,7 @@ export async function updateProjectComplain(
  * Purpose: Retrieves a specific project complain by its ID
  */
 export async function getProjectComplainById(
-  complainId: number
+  complainId: number,
 ): Promise<ApiResponse<ProjectComplain>> {
   return fetchWrapper.get(`complain/projectcomplain/${complainId}`);
 }
@@ -105,7 +107,7 @@ export async function getProjectComplainById(
  * Purpose: Soft deletes a project complain (sets IsActive = false)
  */
 export async function deleteProjectComplain(
-  complainId: number
+  complainId: number,
 ): Promise<ApiResponse<void>> {
   return fetchWrapper.del(`complain/projectcomplain/${complainId}`);
 }

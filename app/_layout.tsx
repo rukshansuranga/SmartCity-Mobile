@@ -14,6 +14,7 @@ import { appStore } from "@/stores/appStore";
 import { StripeProvider } from "@stripe/stripe-react-native";
 import { useEffect } from "react";
 import { Image, Text, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Badge, IconButton } from "react-native-paper";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
@@ -193,7 +194,7 @@ export default function RootLayout() {
       // const idToken = "authState.idToken";
       //console.log("Logging out with idToken:", idToken);
       await fetch(
-        `${process.env.EXPO_PUBLIC_KEYCLOAK_URL}/protocol/openid-connect/logout?id_token_hint=${idToken}`
+        `${process.env.EXPO_PUBLIC_KEYCLOAK_URL}/protocol/openid-connect/logout?id_token_hint=${idToken}`,
       );
       // @ts-ignore
       logOut();
@@ -203,13 +204,13 @@ export default function RootLayout() {
   }
 
   const fetchUnreadNotificationCount = async () => {
-    console.log("Fetching unread notification count...");
+    //console.log("Fetching unread notification count...");
     try {
       const count = await getUnreadNotificationCount(userInfo.sub);
       if (!count.isSuccess) {
         console.error(
           "Failed to fetch unread notification count:",
-          count.message
+          count.message,
         );
         updateNotificationCount(0);
         return;
@@ -223,55 +224,68 @@ export default function RootLayout() {
   };
 
   return (
-    <StripeProvider
-      publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""}
-      merchantIdentifier="merchant.com.smartcity"
-    >
-      <SafeAreaProvider>
-        <SafeAreaView className="flex-1">
-          <Stack
-            screenOptions={{
-              header: (props) => (
-                <MinimalHeader
-                  {...props}
-                  logOut={handleLogout}
-                  userName={userInfo?.given_name}
-                  notificationCount={unreadNotificationCount}
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <StripeProvider
+        publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""}
+        merchantIdentifier="merchant.com.smartcity"
+      >
+        <SafeAreaProvider>
+          <SafeAreaView className="flex-1">
+            <Stack
+              screenOptions={{
+                header: (props) => (
+                  <MinimalHeader
+                    {...props}
+                    logOut={handleLogout}
+                    userName={userInfo?.given_name}
+                    notificationCount={unreadNotificationCount}
+                  />
+                ), // Use custom header
+              }}
+            >
+              <Stack.Screen name="index" options={{ headerShown: false }} />
+              <Stack.Protected guard={!isSignedIn}>
+                <Stack.Screen name="auth" options={{ headerShown: false }} />
+              </Stack.Protected>{" "}
+              <Stack.Protected guard={isSignedIn}>
+                <Stack.Screen
+                  name="selectCouncil"
+                  options={{ headerShown: false, title: "Select Council" }}
                 />
-              ), // Use custom header
-            }}
-          >
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Protected guard={!isSignedIn}>
-              <Stack.Screen name="auth" options={{ headerShown: false }} />
-            </Stack.Protected>{" "}
-            <Stack.Protected guard={isSignedIn}>
-              <Stack.Screen
-                name="selectCouncil"
-                options={{ headerShown: false, title: "Select Council" }}
-              />
-              <Stack.Screen name="home" options={{ title: "Home" }} />
-              <Stack.Screen
-                name="(notification)/NotificationList"
-                options={{ headerShown: true, title: "Notifications" }}
-              />
-              <Stack.Screen
-                name="(complains)"
-                options={{ title: "Complains" }}
-              />
-              <Stack.Screen name="(garbage)" options={{ title: "Garbage" }} />
-              <Stack.Screen name="(projects)" options={{ title: "Projects" }} />
-              <Stack.Screen
-                name="(adviser)"
-                options={{ title: "AI Assistant" }}
-              />
-              <Stack.Screen name="(tax)" options={{ headerShown: false }} />
-              <Stack.Screen name="editUser" options={{ title: "Edit User" }} />
-            </Stack.Protected>
-          </Stack>
-          <Toast />
-        </SafeAreaView>
-      </SafeAreaProvider>
-    </StripeProvider>
+                <Stack.Screen name="home" options={{ title: "Home" }} />
+                <Stack.Screen
+                  name="(notification)/NotificationList"
+                  options={{ headerShown: true, title: "Notifications" }}
+                />
+                <Stack.Screen
+                  name="(complains)"
+                  options={{ title: "Complains" }}
+                />
+                <Stack.Screen name="(garbage)" options={{ title: "Garbage" }} />
+                <Stack.Screen
+                  name="(projects)"
+                  options={{ title: "Projects" }}
+                />
+                <Stack.Screen
+                  name="(adviser)"
+                  options={{ title: "AI Assistant" }}
+                />
+                <Stack.Screen name="(tax)" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="editUser"
+                  options={{ title: "Edit User" }}
+                />
+                <Stack.Screen name="(budget)" options={{ title: "Budget" }} />
+                <Stack.Screen
+                  name="(infrastructure)"
+                  options={{ title: "Infrastructure" }}
+                />
+              </Stack.Protected>
+            </Stack>
+            <Toast />
+          </SafeAreaView>
+        </SafeAreaProvider>
+      </StripeProvider>
+    </GestureHandlerRootView>
   );
 }

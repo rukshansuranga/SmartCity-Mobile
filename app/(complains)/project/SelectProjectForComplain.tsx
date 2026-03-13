@@ -1,266 +1,217 @@
-import { Picker } from "@react-native-picker/picker";
 import {
   Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
-  SafeAreaView,
   View,
 } from "react-native";
 
-import { ProjectStatus, ProjectType } from "@/enums/enum"; // Adjust the import path as necessary
+import { filterProjects, getProjectsByCouncilId } from "@/api/projectAction";
+import SelectProjectListView from "@/components/complains/SelectProjectListView";
+import SelectProjectMapView from "@/components/complains/SelectProjectMapView";
+import { useAuthStore } from "@/stores/authStore";
+import { ProjectWithComplainInfo } from "@/types";
 import { useEffect, useState } from "react";
-import {
-  Button,
-  IconButton,
-  MD3Colors,
-  Text,
-  TextInput,
-} from "react-native-paper";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import ComplainAddModal from "./ComplainAddModal";
+import { Button, IconButton, MD3Colors } from "react-native-paper";
+import { SafeAreaView } from "react-native-safe-area-context";
 import ComplainListModel from "./ComplainListModal";
 
 export default function SelectProjectForComplain() {
+  const { selectedCouncil } = useAuthStore();
+
   const [selectedType, setSelectedType] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState(null);
   const [text, setText] = useState("");
-  const [projects, setProjects] = useState([]);
+
+  // Separate states for map and list
+  const [mapProjects, setMapProjects] = useState([]);
+  const [listProjects, setListProjects] = useState([]);
+
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [modalType, setModalType] = useState("add");
 
-  async function handleSearch() {
-    try {
-      const res = await fetch(
-        `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/project/filter`,
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            type: selectedType,
-            status: selectedStatus,
-            name: text,
-          }),
-        }
-      );
+  // View mode: 'list' or 'map'
+  const [viewMode, setViewMode] = useState<"list" | "map">("map");
 
-      const response = await res.json();
+  // Load all council projects on mount for map view
+  useEffect(() => {
+    async function loadCouncilProjects() {
+      if (!selectedCouncil?.value) {
+        console.error("No council selected");
+        return;
+      }
 
-      // Handle new ApiResponse structure
-      if (response && typeof response === "object" && "isSuccess" in response) {
+      try {
+        const response = await getProjectsByCouncilId(selectedCouncil.value);
+
         if (!response.isSuccess) {
-          console.error("Search failed:", response.message);
-          if (response.errors && response.errors.length > 0) {
-            response.errors.forEach((error) => console.error(error));
-          }
-          setProjects([]);
+          console.error("Failed to load council projects:", response.message);
+          setMapProjects([]);
           return;
         }
-        // Use the data property for successful response
-        setProjects(response.data || []);
-      } else {
-        // For backwards compatibility
-        setProjects(response || []);
+
+        setMapProjects(response.data || []);
+        console.log(
+          `Loaded ${response.data?.length || 0} projects for council ${selectedCouncil.value}`,
+        );
+      } catch (error) {
+        console.error("Error loading council projects:", error);
+        setMapProjects([]);
+      }
+    }
+
+    loadCouncilProjects();
+  }, [selectedCouncil?.value]);
+
+  async function handleSearch() {
+    console.log("Searching with:", {
+      type: selectedType,
+      status: selectedStatus,
+      name: text,
+    });
+
+    try {
+      const response = await filterProjects({
+        type: selectedType,
+        status: selectedStatus,
+        name: text,
+        city: null,
+        isRecent: false,
+      });
+
+      // Handle ApiResponse structure
+      if (!response.isSuccess) {
+        console.error("Search failed:", response.message);
+        if (response.errors && response.errors.length > 0) {
+          response.errors.forEach((error) => console.error(error));
+        }
+        setListProjects([]);
+        return;
+      }
+      // Use the data property for successful response
+      const projects = response.data || [];
+      setListProjects(projects);
+
+      // Auto-select and open modal if only one project found
+      if (projects.length === 1) {
+        setSelectedProjectId(projects[0].projectId);
+        setSelectedProject(projects[0]);
+        setModalVisible(true);
       }
     } catch (error) {
       console.error("Error searching projects:", error);
-      setProjects([]);
+      setListProjects([]);
     }
   }
 
   useEffect(() => {
+    // Find selected project in the appropriate state based on current view
+    const projectsList = viewMode === "map" ? mapProjects : listProjects;
     setSelectedProject(
-      projects.find((project) => project.projectId === selectedProjectId)
+      projectsList.find((project) => project.projectId === selectedProjectId) ||
+        null,
     );
-  }, [selectedProjectId]);
+  }, [selectedProjectId, mapProjects, listProjects, viewMode]);
+
+  const handleProjectSelectFromMap = (project: ProjectWithComplainInfo) => {
+    setSelectedProject(project);
+    setSelectedProjectId(project.projectId);
+    // Automatically open complain list modal
+    setModalVisible(true);
+  };
 
   return (
-    <SafeAreaProvider>
-      <SafeAreaView className="flex-1">
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
+    <SafeAreaView className="flex-1">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <View className="flex-1 px-2">
+          {/* Toggle between List and Map view */}
+          <View className="flex-row gap-2 py-2">
+            <Button
+              mode={viewMode === "map" ? "contained" : "outlined"}
+              onPress={() => setViewMode("map")}
+              icon="map"
+              style={{ flex: 1 }}
+              buttonColor={viewMode === "map" ? "#03A791" : undefined}
+            >
+              Map View
+            </Button>
+            <Button
+              mode={viewMode === "list" ? "contained" : "outlined"}
+              onPress={() => setViewMode("list")}
+              icon="format-list-bulleted"
+              style={{ flex: 1 }}
+              buttonColor={viewMode === "list" ? "#03A791" : undefined}
+            >
+              List View
+            </Button>
+          </View>
+
+          {viewMode === "list" ? (
+            <SelectProjectListView
+              selectedType={selectedType}
+              setSelectedType={setSelectedType}
+              selectedStatus={selectedStatus}
+              setSelectedStatus={setSelectedStatus}
+              text={text}
+              setText={setText}
+              projects={listProjects}
+              selectedProjectId={selectedProjectId}
+              setSelectedProjectId={setSelectedProjectId}
+              selectedProject={selectedProject}
+              handleSearch={handleSearch}
+              onViewComplains={() => {
+                setModalVisible(true);
+              }}
+            />
+          ) : (
+            <SelectProjectMapView
+              projects={mapProjects}
+              selectedProject={selectedProject}
+              onProjectSelect={handleProjectSelectFromMap}
+              onSwitchToList={() => setViewMode("list")}
+            />
+          )}
+        </View>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => {
+            Alert.alert("Modal has been closed.");
+            setModalVisible(!modalVisible);
+          }}
         >
-          <View className="flex-1 items-center justify-center px-2">
-            <View className=" bg-white p-4 rounded-lg shadow-md  w-full">
-              <View className="flex gap-2 w-full">
-                <View className="w-full">
-                  <Picker
-                    selectedValue={selectedType}
-                    onValueChange={(itemValue, itemIndex) =>
-                      setSelectedType(itemValue)
-                    }
-                    mode="dropdown"
-                    style={{ fontSize: 18 }}
-                    itemStyle={{ fontSize: 30 }}
-                  >
-                    <Picker.Item
-                      key={0}
-                      label="Select Project Type"
-                      value={null}
-                    />
-                    {Object.keys(ProjectType)
-                      .filter((key) => isNaN(Number(key)))
-                      ?.map((key) => {
-                        const value =
-                          ProjectType[key as keyof typeof ProjectType];
-                        return (
-                          <Picker.Item key={value} label={key} value={value} />
-                        );
-                      })}
-                  </Picker>
+          <View
+            className="flex-1 justify-center items-center px-5 py-12"
+            style={{ backgroundColor: "#F1BA88" }}
+          >
+            <View
+              className="flex-1 w-full p-4 rounded-md items-center elevation-sm"
+              style={{ backgroundColor: "#E9F5BE" }}
+            >
+              <View className="flex-1 w-full justify-center items-center">
+                <View className="flex-1 w-full">
+                  <ComplainListModel project={selectedProject} />
                 </View>
-                <View className="w-full">
-                  <Picker
-                    selectedValue={selectedStatus}
-                    onValueChange={(itemValue, itemIndex) =>
-                      setSelectedStatus(itemValue)
-                    }
-                    mode="dropdown"
-                    style={{ fontSize: 18 }}
-                    itemStyle={{ fontSize: 30 }}
-                  >
-                    <Picker.Item
-                      key={0}
-                      label="Select Project Status"
-                      value={null}
-                    />
-                    {Object.keys(ProjectStatus)
-                      .filter((key) => isNaN(Number(key)))
-                      ?.map((key) => {
-                        const value =
-                          ProjectStatus[key as keyof typeof ProjectStatus];
-                        return (
-                          <Picker.Item key={value} label={key} value={value} />
-                        );
-                      })}
-                  </Picker>
-                </View>
-                <View className="w-full">
-                  <TextInput
-                    label="Search by Name/Description"
-                    placeholder="Project Name/Description"
-                    value={text}
-                    onChangeText={setText}
+                <View className="h-15 mt-2">
+                  <IconButton
+                    icon="close"
+                    iconColor={MD3Colors.primary10}
+                    size={30}
+                    mode="contained"
+                    onPress={() => setModalVisible(!modalVisible)}
                   />
                 </View>
-                <View className="w-full">
-                  <Button mode="contained" onPress={handleSearch}>
-                    Search
-                  </Button>
-                </View>
               </View>
-            </View>
-            <View className="w-full mt-4">
-              {projects.length > 0 ? (
-                <View>
-                  <Picker
-                    selectedValue={selectedStatus}
-                    onValueChange={(itemValue, itemIndex) =>
-                      setSelectedProjectId(itemValue)
-                    }
-                    mode="dropdown"
-                    style={{ fontSize: 18 }}
-                    itemStyle={{ fontSize: 30 }}
-                  >
-                    <Picker.Item
-                      key={0}
-                      label="Select Project Status"
-                      value={null}
-                    />
-                    {projects?.map((project) => (
-                      <Picker.Item
-                        key={project.projectId}
-                        label={project.subject}
-                        value={project.projectId}
-                      />
-                    ))}
-                  </Picker>
-                </View>
-              ) : (
-                <View className="flex-1 items-center justify-center">
-                  <Text>No projects found</Text>
-                </View>
-              )}
-              {selectedProject && (
-                <View>
-                  <View>
-                    <TextInput
-                      label="Description"
-                      value={selectedProject?.description || ""}
-                      multiline={true}
-                      numberOfLines={4} // Initial height for 4 lines
-                      mode="outlined" // Or "flat" based on your design preference
-                    />
-                  </View>
-                  <View className="flex-row items-center justify-center w-full gap-2 px-5 mt-3">
-                    <Button
-                      onPress={() => {
-                        setModalType("list");
-                        setModalVisible(true);
-                      }}
-                      mode="contained"
-                    >
-                      Complains
-                    </Button>
-                    <Button
-                      onPress={() => {
-                        setModalType("add");
-                        setModalVisible(true);
-                      }}
-                      mode="contained"
-                    >
-                      Add{" "}
-                    </Button>
-                  </View>
-                </View>
-              )}
             </View>
           </View>
-          <Modal
-            animationType="slide"
-            transparent={true}
-            visible={modalVisible}
-            onRequestClose={() => {
-              Alert.alert("Modal has been closed.");
-              setModalVisible(!modalVisible);
-            }}
-          >
-            <View className="flex-1 justify-center items-center bg-red-50 px-5 py-12">
-              <View className="flex-1 w-full p-4 bg-slate-200 rounded-md items-center elevation-sm">
-                <View className="flex-1 w-full justify-center items-center">
-                  <View className="flex-1 w-full">
-                    {modalType === "add" && (
-                      <ComplainAddModal
-                        project={selectedProject}
-                        closeModel={setModalVisible}
-                      />
-                    )}
-                    {modalType === "list" && (
-                      <ComplainListModel project={selectedProject} />
-                    )}
-                  </View>
-                  <View className="h-15 mt-2">
-                    <IconButton
-                      icon="close"
-                      iconColor={MD3Colors.primary10}
-                      size={30}
-                      mode="contained"
-                      onPress={() => setModalVisible(!modalVisible)}
-                    />
-                  </View>
-                </View>
-              </View>
-            </View>
-          </Modal>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </SafeAreaProvider>
+        </Modal>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }

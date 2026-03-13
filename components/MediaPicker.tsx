@@ -88,6 +88,9 @@ const MediaPicker: React.FC<Props> = ({
 }) => {
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
 
+  // Safety check: ensure attachments is always an array
+  const safeAttachments = attachments || [];
+
   // Capture voice (audio)
   const captureVoice = async () => {
     try {
@@ -95,7 +98,7 @@ const MediaPicker: React.FC<Props> = ({
       if (status !== "granted") {
         Alert.alert(
           "Permission required",
-          "Microphone permission is required to record audio."
+          "Microphone permission is required to record audio.",
         );
         return;
       }
@@ -105,7 +108,7 @@ const MediaPicker: React.FC<Props> = ({
       });
       const rec = new Audio.Recording();
       await rec.prepareToRecordAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY
+        Audio.RecordingOptionsPresets.HIGH_QUALITY,
       );
       await rec.startAsync();
       setRecording(rec);
@@ -172,7 +175,7 @@ const MediaPicker: React.FC<Props> = ({
     if (status !== "granted") {
       Alert.alert(
         "Permission required",
-        "Camera permission is required to record a video."
+        "Camera permission is required to record a video.",
       );
       return;
     }
@@ -235,7 +238,7 @@ const MediaPicker: React.FC<Props> = ({
     if (status !== "granted") {
       Alert.alert(
         "Permission required",
-        "Camera permission is required to take a photo."
+        "Camera permission is required to take a photo.",
       );
       return;
     }
@@ -337,7 +340,7 @@ const MediaPicker: React.FC<Props> = ({
 
   // Remove an attachment by index
   const removeAttachment = async (index: number, attachmentId?: number) => {
-    const updated = attachments.filter((_, i) => i !== index);
+    const updated = safeAttachments.filter((_, i) => i !== index);
     if (attachmentId) {
       try {
         await deleteAttachment(attachmentId);
@@ -352,7 +355,7 @@ const MediaPicker: React.FC<Props> = ({
   const removeVideo = async (videoIndex: number, attachmentId?: number) => {
     // Find the index of the video in the attachments array
     let videoCount = -1;
-    const updated = attachments.filter((att) => {
+    const updated = safeAttachments.filter((att) => {
       if (att.attachmentType === "Video") {
         videoCount++;
         return videoCount !== videoIndex;
@@ -372,8 +375,8 @@ const MediaPicker: React.FC<Props> = ({
 
   // Update the description for an attachment (local state)
   const updateAttachmentDescription = (index: number, value: string) => {
-    const updated = attachments.map((att, i) =>
-      i === index ? { ...att, description: value } : att
+    const updated = safeAttachments.map((att, i) =>
+      i === index ? { ...att, description: value } : att,
     );
     onChange(updated);
   };
@@ -407,27 +410,27 @@ const MediaPicker: React.FC<Props> = ({
 
       <View className="flex-row mb-2 pl-2 flex-wrap justify-start gap-2">
         <TouchableOpacity
-          className={`max-w-[110px] bg-[#38a3a5] rounded-xl mr-1.5 shadow-md items-center py-2 px-3 ${attachments.length >= maxAttachments ? "opacity-50" : ""}`}
+          className={`max-w-[110px] bg-[#38a3a5] rounded-xl mr-1.5 shadow-md items-center py-2 px-3 ${safeAttachments.length >= maxAttachments ? "opacity-50" : ""}`}
           onPress={pickImage}
-          disabled={attachments.length >= maxAttachments}
+          disabled={safeAttachments.length >= maxAttachments}
         >
           <View className="flex-row items-center justify-center">
             <MaterialIcons name="photo-library" size={24} color="#fff" />
           </View>
         </TouchableOpacity>
         <TouchableOpacity
-          className={`max-w-[110px] bg-[#22577a] rounded-xl mx-0.5 shadow-md items-center py-2 px-3 ${attachments.length >= maxAttachments ? "opacity-50" : ""}`}
+          className={`max-w-[110px] bg-[#22577a] rounded-xl mx-0.5 shadow-md items-center py-2 px-3 ${safeAttachments.length >= maxAttachments ? "opacity-50" : ""}`}
           onPress={capturePhoto}
-          disabled={attachments.length >= maxAttachments}
+          disabled={safeAttachments.length >= maxAttachments}
         >
           <View className="flex-row items-center justify-center">
             <MaterialIcons name="photo-camera" size={24} color="#fff" />
           </View>
         </TouchableOpacity>
         <TouchableOpacity
-          className={`max-w-[110px] bg-[#57cc99] rounded-xl ml-1.5 shadow-md items-center py-2 px-3 ${attachments.length >= maxAttachments ? "opacity-50" : ""}`}
+          className={`max-w-[110px] bg-[#57cc99] rounded-xl ml-1.5 shadow-md items-center py-2 px-3 ${safeAttachments.length >= maxAttachments ? "opacity-50" : ""}`}
           onPress={pickDocument}
-          disabled={attachments.length >= maxAttachments}
+          disabled={safeAttachments.length >= maxAttachments}
           testID="document-picker-button"
         >
           <View className="flex-row items-center justify-center">
@@ -436,7 +439,7 @@ const MediaPicker: React.FC<Props> = ({
         </TouchableOpacity>
         {/* Video Buttons */}
         <TouchableOpacity
-          className={`max-w-[110px] bg-[#f7b801] rounded-xl ml-1.5 shadow-md items-center py-2 px-3 ${attachments.length >= maxAttachments ? "opacity-50" : ""}`}
+          className={`max-w-[110px] bg-[#f7b801] rounded-xl ml-1.5 shadow-md items-center py-2 px-3 ${safeAttachments.length >= maxAttachments ? "opacity-50" : ""}`}
           onPress={pickVideo}
         >
           <View className="flex-row items-center justify-center">
@@ -444,7 +447,7 @@ const MediaPicker: React.FC<Props> = ({
           </View>
         </TouchableOpacity>
         <TouchableOpacity
-          className={`max-w-[110px] bg-[#f95d6a] rounded-xl ml-1.5 shadow-md items-center py-2 px-3 ${attachments.length >= maxAttachments ? "opacity-50" : ""}`}
+          className={`max-w-[110px] bg-[#f95d6a] rounded-xl ml-1.5 shadow-md items-center py-2 px-3 ${safeAttachments.length >= maxAttachments ? "opacity-50" : ""}`}
           onPress={captureVideo}
         >
           <View className="flex-row items-center justify-center">
@@ -453,9 +456,9 @@ const MediaPicker: React.FC<Props> = ({
         </TouchableOpacity>
         {/* Voice Capture Button */}
         <TouchableOpacity
-          className={`max-w-[110px] bg-[#3a86ff] rounded-xl ml-1.5 shadow-md items-center py-2 px-3 ${attachments.length >= maxAttachments ? "opacity-50" : ""}`}
+          className={`max-w-[110px] bg-[#3a86ff] rounded-xl ml-1.5 shadow-md items-center py-2 px-3 ${safeAttachments.length >= maxAttachments ? "opacity-50" : ""}`}
           onPress={captureVoice}
-          disabled={attachments.length >= maxAttachments}
+          disabled={safeAttachments.length >= maxAttachments}
         >
           <View className="flex-row items-center justify-center">
             <MaterialIcons name="mic" size={24} color="#fff" />
@@ -465,9 +468,9 @@ const MediaPicker: React.FC<Props> = ({
 
       {/* Images & Files List (exclude videos and audio) */}
       <FlatList
-        data={attachments.filter(
+        data={safeAttachments.filter(
           (att) =>
-            att.attachmentType !== "Video" && att.attachmentType !== "Audio"
+            att.attachmentType !== "Video" && att.attachmentType !== "Audio",
         )}
         keyExtractor={(_, idx) => idx.toString()}
         renderItem={({ item, index }) => (
@@ -520,7 +523,7 @@ const MediaPicker: React.FC<Props> = ({
       />
 
       {/* Voice Attachments Row */}
-      {attachments.some((att) => att.attachmentType === "Audio") && (
+      {safeAttachments.some((att) => att.attachmentType === "Audio") && (
         <View className="mt-2">
           <Text className="text-[#22577a] font-bold mb-2">Voice Notes</Text>
           <ScrollView
@@ -528,7 +531,7 @@ const MediaPicker: React.FC<Props> = ({
             showsHorizontalScrollIndicator={false}
             style={{ flexDirection: "row" }}
           >
-            {attachments
+            {safeAttachments
               .filter((att) => att.attachmentType === "Audio")
               .map((item, idx) => (
                 <View
@@ -566,8 +569,8 @@ const MediaPicker: React.FC<Props> = ({
                     className="bg-[#f95d6a] rounded-full p-1 mt-1"
                     onPress={() =>
                       removeAttachment(
-                        attachments.indexOf(item),
-                        item?.attachmentId
+                        safeAttachments.indexOf(item),
+                        item?.attachmentId,
                       )
                     }
                     accessibilityLabel="Remove voice note"
@@ -581,11 +584,13 @@ const MediaPicker: React.FC<Props> = ({
       )}
 
       {/* Video List */}
-      {attachments.some((att) => att.attachmentType === "Video") && (
+      {safeAttachments.some((att) => att.attachmentType === "Video") && (
         <View className="mt-4">
           <Text className="text-[#22577a] font-bold mb-2">Videos</Text>
           <FlatList
-            data={attachments.filter((att) => att.attachmentType === "Video")}
+            data={safeAttachments.filter(
+              (att) => att.attachmentType === "Video",
+            )}
             keyExtractor={(_, idx) => `video-${idx}`}
             renderItem={({ item, index }) => (
               <VideoItem

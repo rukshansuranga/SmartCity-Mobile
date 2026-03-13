@@ -6,7 +6,7 @@ import Toast from "react-native-toast-message";
 import { getValidAccessToken } from "./tokenManager";
 
 //const baseUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
-const baseUrl = "https://f3f4fbd2ef5d.ngrok-free.app/api/";
+const baseUrl = "https://5549-2402-d000-812c-ceba-612c-c47d-8b50-6c88.ngrok-free.app/api/";
 
 async function get(url: string) {
   const requestOptions = {
@@ -19,8 +19,21 @@ async function get(url: string) {
 }
 
 async function put(url: string, body: unknown) {
+  console.log("🔵 PUT Request:", baseUrl + url);
+  console.log("🔵 PUT Body:", JSON.stringify(body, null, 2));
   const requestOptions = {
     method: "PUT",
+    headers: await getHeaders(),
+    body: JSON.stringify(body),
+  };
+  const response = await fetch(baseUrl + url, requestOptions);
+  console.log("🔵 PUT Response Status:", response.status);
+  return handleResponse(response);
+}
+
+async function patch(url: string, body: unknown) {
+  const requestOptions = {
+    method: "PATCH",
     headers: await getHeaders(),
     body: JSON.stringify(body),
   };
@@ -195,6 +208,12 @@ async function getHeaders(): Promise<Headers> {
   const accessToken = await getValidAccessToken();
   const { selectedCouncil } = useAuthStore.getState();
 
+  console.log(
+    "🔑 Selected Council:",
+    selectedCouncil?.value,
+    selectedCouncil?.label,
+  );
+
   const headers = new Headers();
   headers.set("Content-type", "application/json");
 
@@ -205,6 +224,7 @@ async function getHeaders(): Promise<Headers> {
   // Add council ID header if council is selected
   if (selectedCouncil?.value) {
     headers.set("X-Council-Id", selectedCouncil.value);
+    console.log("🔑 Sending X-Council-Id header:", selectedCouncil.value);
   }
 
   return headers;
@@ -259,6 +279,7 @@ export const fetchWrapper = {
   get,
   post,
   put,
+  patch,
   del,
   postFormData,
   putFormData,
