@@ -38,7 +38,7 @@ export default function QuarterlyTaxPaymentSection({
     (
       landParcel: QuarterlyTaxByResidentDto,
       taxableUnit: any,
-      quarter: any
+      quarter: any,
     ): QuarterlyTaxCartItem => {
       return {
         taxableUnitID: taxableUnit.taxableUnitID,
@@ -53,7 +53,7 @@ export default function QuarterlyTaxPaymentSection({
         isDiscountApplicable: quarter.isDiscountApplicable,
       };
     },
-    []
+    [],
   );
 
   const handleLandParcelToggle = useCallback(
@@ -69,7 +69,7 @@ export default function QuarterlyTaxPaymentSection({
       });
 
       const allSelected = allItems.every((item) =>
-        isQuarterlyTaxSelected(item.taxableUnitID, item.taxYear, item.quarter)
+        isQuarterlyTaxSelected(item.taxableUnitID, item.taxYear, item.quarter),
       );
 
       if (allSelected) {
@@ -77,7 +77,7 @@ export default function QuarterlyTaxPaymentSection({
       } else {
         // Only add items that follow the quarter ordering rule
         const validItems = allItems.filter((item) =>
-          canSelectQuarter(item.taxableUnitID, item.taxYear, item.quarter)
+          canSelectQuarter(item.taxableUnitID, item.taxYear, item.quarter),
         );
         addMultipleQuarterlyTax(validItems);
       }
@@ -88,7 +88,7 @@ export default function QuarterlyTaxPaymentSection({
       addMultipleQuarterlyTax,
       canSelectQuarter,
       convertToCartItem,
-    ]
+    ],
   );
 
   const handleQuarterToggle = useCallback(
@@ -97,14 +97,14 @@ export default function QuarterlyTaxPaymentSection({
       const isSelected = isQuarterlyTaxSelected(
         cartItem.taxableUnitID,
         cartItem.taxYear,
-        cartItem.quarter
+        cartItem.quarter,
       );
 
       if (isSelected) {
         removeQuarterlyTax(
           cartItem.taxableUnitID,
           cartItem.taxYear,
-          cartItem.quarter
+          cartItem.quarter,
         );
       } else {
         // Check if this quarter can be selected (ordering rule)
@@ -112,7 +112,7 @@ export default function QuarterlyTaxPaymentSection({
           canSelectQuarter(
             cartItem.taxableUnitID,
             cartItem.taxYear,
-            cartItem.quarter
+            cartItem.quarter,
           )
         ) {
           addQuarterlyTax(cartItem);
@@ -125,7 +125,7 @@ export default function QuarterlyTaxPaymentSection({
       addQuarterlyTax,
       canSelectQuarter,
       convertToCartItem,
-    ]
+    ],
   );
 
   if (loading) {
@@ -160,18 +160,18 @@ export default function QuarterlyTaxPaymentSection({
 
         {quarterlyTax.map((landParcel) => {
           const unpaidQuarters = landParcel.taxableUnits.flatMap((unit) =>
-            unit.quarterlyTaxes.filter((q) => !q.isPaid)
+            unit.quarterlyTaxes.filter((q) => !q.isPaid),
           );
 
           if (unpaidQuarters.length === 0) return null;
 
           const totalAmount = unpaidQuarters.reduce(
-            (sum, q) => sum + q.amountDue,
-            0
+            (sum, q) => sum + (q.amountDue || 0),
+            0,
           );
           const totalDiscount = unpaidQuarters.reduce(
             (sum, q) => sum + (q.discountAmount || 0),
-            0
+            0,
           );
 
           const allItems: QuarterlyTaxCartItem[] = [];
@@ -187,8 +187,8 @@ export default function QuarterlyTaxPaymentSection({
             isQuarterlyTaxSelected(
               item.taxableUnitID,
               item.taxYear,
-              item.quarter
-            )
+              item.quarter,
+            ),
           );
 
           return (
@@ -210,9 +210,9 @@ export default function QuarterlyTaxPaymentSection({
                     {unpaidQuarters.length !== 1 ? "s" : ""}
                   </Text>
                   <Text className="text-[#80ed99] text-sm">
-                    Total: LKR {totalAmount.toFixed(2)}
+                    Total: LKR {(totalAmount || 0).toFixed(2)}
                     {totalDiscount > 0 &&
-                      ` (Discount: LKR ${totalDiscount.toFixed(2)})`}
+                      ` (Discount: LKR ${(totalDiscount || 0).toFixed(2)})`}
                   </Text>
                 </View>
                 <View
@@ -232,7 +232,7 @@ export default function QuarterlyTaxPaymentSection({
               <View className="bg-white">
                 {landParcel.taxableUnits.map((unit) => {
                   const unpaidUnitQuarters = unit.quarterlyTaxes.filter(
-                    (q) => !q.isPaid
+                    (q) => !q.isPaid,
                   );
 
                   if (unpaidUnitQuarters.length === 0) return null;
@@ -252,12 +252,12 @@ export default function QuarterlyTaxPaymentSection({
                         const isSelected = isQuarterlyTaxSelected(
                           unit.taxableUnitID,
                           quarter.taxYear,
-                          quarter.quarter
+                          quarter.quarter,
                         );
                         const canSelect = canSelectQuarter(
                           unit.taxableUnitID,
                           quarter.taxYear,
-                          quarter.quarter
+                          quarter.quarter,
                         );
 
                         return (
@@ -294,23 +294,24 @@ export default function QuarterlyTaxPaymentSection({
 
                               <Text className="text-sm text-[#38a3a5]">
                                 Base Amount: LKR{" "}
-                                {quarter.quarterlyTaxAmount.toFixed(2)}
+                                {(quarter.quarterlyTaxAmount || 0).toFixed(2)}
                               </Text>
                               {quarter.discountAmount &&
                                 quarter.discountAmount > 0 && (
                                   <Text className="text-sm text-[#57cc99]">
                                     Discount: -LKR{" "}
-                                    {quarter.discountAmount.toFixed(2)}
+                                    {(quarter.discountAmount || 0).toFixed(2)}
                                   </Text>
                                 )}
                               <Text className="text-sm text-[#22577a] font-semibold">
-                                Amount Due: LKR {quarter.amountDue.toFixed(2)}
+                                Amount Due: LKR{" "}
+                                {(quarter.amountDue || 0).toFixed(2)}
                               </Text>
                               {quarter.discountDeadline && (
                                 <Text className="text-xs text-[#38a3a5] mt-1">
                                   Discount valid until:{" "}
                                   {new Date(
-                                    quarter.discountDeadline
+                                    quarter.discountDeadline,
                                   ).toLocaleDateString()}
                                 </Text>
                               )}
@@ -352,7 +353,7 @@ export default function QuarterlyTaxPaymentSection({
           <View className="flex-row justify-between mb-1">
             <Text className="text-[#22577a]">Discount Savings:</Text>
             <Text className="text-[#57cc99] font-semibold">
-              -LKR {getTotalQuarterlyDiscount().toFixed(2)}
+              -LKR {(getTotalQuarterlyDiscount() || 0).toFixed(2)}
             </Text>
           </View>
           <View className="h-px bg-[#57cc99] my-2" />
@@ -361,7 +362,7 @@ export default function QuarterlyTaxPaymentSection({
               Total Amount:
             </Text>
             <Text className="text-lg font-bold text-[#22577a]">
-              LKR {getTotalQuarterlyTaxAmount().toFixed(2)}
+              LKR {(getTotalQuarterlyTaxAmount() || 0).toFixed(2)}
             </Text>
           </View>
         </View>

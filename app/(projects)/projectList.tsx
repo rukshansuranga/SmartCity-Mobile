@@ -46,15 +46,61 @@ export default function ProjectList() {
 
   const getProjectTypeEnum = (type: string): ProjectType => {
     switch (type) {
+      // Infrastructure
       case "Road":
         return ProjectType.Road;
+      case "Bridge":
+        return ProjectType.Bridge;
+      case "Culvert":
+        return ProjectType.Culvert;
+      case "StreetLighting":
+        return ProjectType.StreetLighting;
+
+      // Water & Sanitation
+      case "WaterSupply":
+        return ProjectType.WaterSupply;
+      case "Pipeline":
+        return ProjectType.Pipeline;
+      case "Drainage":
+        return ProjectType.Drainage;
+      case "Sewerage":
+        return ProjectType.Sewerage;
       case "Irrigation":
         return ProjectType.Irrigation;
+      case "Reservoir":
+        return ProjectType.Reservoir;
+      case "WaterTreatmentPlant":
+        return ProjectType.WaterTreatmentPlant;
+
+      // Buildings & Facilities
       case "Construction":
       case "Building":
         return ProjectType.Building;
+      case "Park":
+        return ProjectType.Park;
+      case "RecreationArea":
+        return ProjectType.RecreationArea;
+      case "CommunityCenter":
+        return ProjectType.CommunityCenter;
+      case "PublicLibrary":
+        return ProjectType.PublicLibrary;
+      case "HealthCenter":
+        return ProjectType.HealthCenter;
+
+      // Waste Management
+      case "WasteManagement":
+        return ProjectType.WasteManagement;
+      case "Landfill":
+        return ProjectType.Landfill;
+      case "RecyclingCenter":
+        return ProjectType.RecyclingCenter;
+
+      // Other
+      case "Other":
+        return ProjectType.Other;
+
       default:
-        return ProjectType.Road;
+        return ProjectType.Other;
     }
   };
 
@@ -92,7 +138,7 @@ export default function ProjectList() {
     console.log(
       "Navigating to project details for ID:",
       project,
-      project.projectId
+      project.projectId,
     );
     // Set current project in store for tabs to access
     setCurrentProject(project.projectId?.toString(), projectType as string);
@@ -242,7 +288,7 @@ export default function ProjectList() {
                 <Text className="font-bold text-[#22577a]">
                   {
                     projects.filter(
-                      (p) => p.status === ProjectStatus.InProgress
+                      (p) => p.status === ProjectStatus.InProgress,
                     ).length
                   }
                 </Text>

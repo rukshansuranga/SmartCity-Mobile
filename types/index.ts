@@ -235,6 +235,7 @@ export interface Arrears {
   arrearsID: number;
   assessmentId: number;
   dueQuarter: number;
+  year: string;
   originalDueAmount: number;
   outstandingBalance: number;
   surchargeAccrued?: number | null;
@@ -326,6 +327,7 @@ export interface TaxableUnitWithArrears {
   taxableUnitID: number;
   unitReference: string;
   unitType: string;
+  outstanding: number;
   arrears: Arrears[];
 }
 
@@ -363,6 +365,47 @@ export interface QuarterDetailDto {
   quarterAmount: number;
   discount: number;
   surcharge: number;
+}
+
+// Unpaid quarters response structure
+export interface UnpaidQuartersByResidentDto {
+  landParcelID: number;
+  streetAddress: string;
+  taxableUnits: TaxableUnitUnpaidQuartersDto[];
+}
+
+export interface TaxableUnitUnpaidQuartersDto {
+  taxableUnitID: number;
+  unitReference: string;
+  unitType: string;
+  outstanding: number;
+  unpaidQuarters: AssessmentQuarterDetailDto[];
+}
+
+export interface AssessmentQuarterDetailDto {
+  assessmentQuarterID: number;
+  assessmentID: number;
+  quarter: number;
+  year: number;
+  dueAmount: number;
+  surchargeAmount: number;
+  discountAmount: number;
+  paymentStatus: string; // e.g., "Unpaid", "Overdue", "Paid"
+}
+
+// Unified cart item for unpaid quarters (used in payment cart)
+export interface UnpaidQuarterCartItem {
+  assessmentQuarterID: number;
+  assessmentID: number;
+  taxableUnitID: number;
+  landParcelID: number;
+  unitReference: string;
+  quarter: number;
+  year: number;
+  dueAmount: number;
+  surchargeAmount: number;
+  discountAmount: number;
+  paymentStatus: string;
 }
 
 // Re-export infrastructure types for convenience

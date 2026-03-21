@@ -1,318 +1,202 @@
 import { create } from "zustand";
 
-// Item structure for arrears in cart
-export interface ArrearsCartItem {
-  arrearsID: number;
-  assessmentId: number;
+// Unified cart item for unpaid quarters (combines arrears and quarterly)
+export interface UnpaidQuarterCartItem {
+  assessmentQuarterID: number;
+  assessmentID: number;
   taxableUnitID: number;
   landParcelID: number;
   unitReference: string;
-  dueQuarter: number;
-  outstandingBalance: number;
-  surchargeAccrued?: number | null;
-}
-
-// Item structure for quarterly tax in cart
-export interface QuarterlyTaxCartItem {
-  taxableUnitID: number;
-  landParcelID: number;
-  unitReference: string;
-  taxYear: number;
   quarter: number;
-  quarterName: string;
-  quarterlyTaxAmount: number;
-  discountAmount?: number;
-  amountDue: number;
-  isDiscountApplicable: boolean;
+  year: number;
+  dueAmount: number;
+  surchargeAmount: number;
+  discountAmount: number;
+  paymentStatus: string;
 }
 
 interface PaymentCartState {
-  // Selected arrears items
-  selectedArrears: ArrearsCartItem[];
+  // Selected unpaid quarter items
+  selectedQuarters: UnpaidQuarterCartItem[];
 
-  // Selected quarterly tax items
-  selectedQuarterlyTax: QuarterlyTaxCartItem[];
-
-  // Actions for arrears
-  addArrears: (item: ArrearsCartItem) => void;
-  removeArrears: (arrearsID: number) => void;
-  addMultipleArrears: (items: ArrearsCartItem[]) => void;
-  removeArrearsForLandParcel: (landParcelID: number) => void;
-  isArrearsSelected: (arrearsID: number) => boolean;
-  isLandParcelArrearsFullySelected: (
-    landParcelID: number,
-    totalArrears: ArrearsCartItem[]
-  ) => boolean;
-
-  // Actions for quarterly tax
-  addQuarterlyTax: (item: QuarterlyTaxCartItem) => void;
-  removeQuarterlyTax: (
+  // Actions for quarters
+  addQuarter: (item: UnpaidQuarterCartItem) => void;
+  removeQuarter: (assessmentQuarterID: number) => void;
+  addMultipleQuarters: (items: UnpaidQuarterCartItem[]) => void;
+  removeQuartersForTaxableUnit: (taxableUnitID: number) => void;
+  removeQuartersForLandParcel: (landParcelID: number) => void;
+  isQuarterSelected: (assessmentQuarterID: number) => boolean;
+  isTaxableUnitFullySelected: (
     taxableUnitID: number,
-    taxYear: number,
-    quarter: number
-  ) => void;
-  addMultipleQuarterlyTax: (items: QuarterlyTaxCartItem[]) => void;
-  removeQuarterlyTaxForLandParcel: (landParcelID: number) => void;
-  isQuarterlyTaxSelected: (
-    taxableUnitID: number,
-    taxYear: number,
-    quarter: number
-  ) => boolean;
-  isLandParcelQuarterlyTaxFullySelected: (
-    landParcelID: number,
-    totalQuarterly: QuarterlyTaxCartItem[]
+    totalQuarters: UnpaidQuarterCartItem[],
   ) => boolean;
 
-  // Validation for quarterly tax ordering
+  // Validation for consecutive quarter selection
   canSelectQuarter: (
     taxableUnitID: number,
-    taxYear: number,
-    quarter: number
+    year: number,
+    quarter: number,
+    allQuarters: UnpaidQuarterCartItem[],
   ) => boolean;
 
   // Calculations
-  getTotalArrearsAmount: () => number;
-  getTotalArrearsSurcharge: () => number;
-  getTotalQuarterlyTaxAmount: () => number;
-  getTotalQuarterlyDiscount: () => number;
+  getTotalDueAmount: () => number;
+  getTotalSurcharge: () => number;
+  getTotalDiscount: () => number;
   getTotalAmount: () => number;
 
   // Clear cart
   clearCart: () => void;
-  clearArrears: () => void;
-  clearQuarterlyTax: () => void;
 }
 
 export const usePaymentCartStore = create<PaymentCartState>((set, get) => ({
-  selectedArrears: [],
-  selectedQuarterlyTax: [],
+  selectedQuarters: [],
 
-  // Arrears actions
-  addArrears: (item) =>
+  // Quarter actions
+  addQuarter: (item) =>
     set((state) => ({
-      selectedArrears: [...state.selectedArrears, item],
+      selectedQuarters: [...state.selectedQuarters, item],
     })),
 
-  removeArrears: (arrearsID) =>
+  removeQuarter: (assessmentQuarterID) =>
     set((state) => ({
-      selectedArrears: state.selectedArrears.filter(
-        (item) => item.arrearsID !== arrearsID
+      selectedQuarters: state.selectedQuarters.filter(
+        (item) => item.assessmentQuarterID !== assessmentQuarterID,
       ),
     })),
 
-  addMultipleArrears: (items) =>
+  addMultipleQuarters: (items) =>
     set((state) => {
       const existingIds = new Set(
-        state.selectedArrears.map((i) => i.arrearsID)
-      );
-      const newItems = items.filter((item) => !existingIds.has(item.arrearsID));
-      return {
-        selectedArrears: [...state.selectedArrears, ...newItems],
-      };
-    }),
-
-  removeArrearsForLandParcel: (landParcelID) =>
-    set((state) => ({
-      selectedArrears: state.selectedArrears.filter(
-        (item) => item.landParcelID !== landParcelID
-      ),
-    })),
-
-  isArrearsSelected: (arrearsID) => {
-    const state = get();
-    return state.selectedArrears.some((item) => item.arrearsID === arrearsID);
-  },
-
-  isLandParcelArrearsFullySelected: (landParcelID, totalArrears) => {
-    const state = get();
-    const selectedForParcel = state.selectedArrears.filter(
-      (item) => item.landParcelID === landParcelID
-    );
-    const totalForParcel = totalArrears.filter(
-      (item) => item.landParcelID === landParcelID
-    );
-    return (
-      totalForParcel.length > 0 &&
-      selectedForParcel.length === totalForParcel.length
-    );
-  },
-
-  // Quarterly tax actions
-  addQuarterlyTax: (item) =>
-    set((state) => ({
-      selectedQuarterlyTax: [...state.selectedQuarterlyTax, item],
-    })),
-
-  removeQuarterlyTax: (taxableUnitID, taxYear, quarter) =>
-    set((state) => ({
-      selectedQuarterlyTax: state.selectedQuarterlyTax.filter(
-        (item) =>
-          !(
-            item.taxableUnitID === taxableUnitID &&
-            item.taxYear === taxYear &&
-            item.quarter === quarter
-          )
-      ),
-    })),
-
-  addMultipleQuarterlyTax: (items) =>
-    set((state) => {
-      const existingKeys = new Set(
-        state.selectedQuarterlyTax.map(
-          (i) => `${i.taxableUnitID}-${i.taxYear}-${i.quarter}`
-        )
+        state.selectedQuarters.map((i) => i.assessmentQuarterID),
       );
       const newItems = items.filter(
-        (item) =>
-          !existingKeys.has(
-            `${item.taxableUnitID}-${item.taxYear}-${item.quarter}`
-          )
+        (item) => !existingIds.has(item.assessmentQuarterID),
       );
       return {
-        selectedQuarterlyTax: [...state.selectedQuarterlyTax, ...newItems],
+        selectedQuarters: [...state.selectedQuarters, ...newItems],
       };
     }),
 
-  removeQuarterlyTaxForLandParcel: (landParcelID) =>
+  removeQuartersForTaxableUnit: (taxableUnitID) =>
     set((state) => ({
-      selectedQuarterlyTax: state.selectedQuarterlyTax.filter(
-        (item) => item.landParcelID !== landParcelID
+      selectedQuarters: state.selectedQuarters.filter(
+        (item) => item.taxableUnitID !== taxableUnitID,
       ),
     })),
 
-  isQuarterlyTaxSelected: (taxableUnitID, taxYear, quarter) => {
+  removeQuartersForLandParcel: (landParcelID) =>
+    set((state) => ({
+      selectedQuarters: state.selectedQuarters.filter(
+        (item) => item.landParcelID !== landParcelID,
+      ),
+    })),
+
+  isQuarterSelected: (assessmentQuarterID) => {
     const state = get();
-    return state.selectedQuarterlyTax.some(
-      (item) =>
-        item.taxableUnitID === taxableUnitID &&
-        item.taxYear === taxYear &&
-        item.quarter === quarter
+    return state.selectedQuarters.some(
+      (item) => item.assessmentQuarterID === assessmentQuarterID,
     );
   },
 
-  isLandParcelQuarterlyTaxFullySelected: (landParcelID, totalQuarterly) => {
+  isTaxableUnitFullySelected: (taxableUnitID, totalQuarters) => {
     const state = get();
-    const selectedForParcel = state.selectedQuarterlyTax.filter(
-      (item) => item.landParcelID === landParcelID
+    const selectedForUnit = state.selectedQuarters.filter(
+      (item) => item.taxableUnitID === taxableUnitID,
     );
-    const totalForParcel = totalQuarterly.filter(
-      (item) => item.landParcelID === landParcelID
+    const totalForUnit = totalQuarters.filter(
+      (item) => item.taxableUnitID === taxableUnitID,
     );
     return (
-      totalForParcel.length > 0 &&
-      selectedForParcel.length === totalForParcel.length
+      totalForUnit.length > 0 && selectedForUnit.length === totalForUnit.length
     );
   },
 
-  // Validation for quarterly tax ordering (Q1 → Q2 → Q3 → Q4)
-  canSelectQuarter: (taxableUnitID, taxYear, quarter) => {
+  // Validation for consecutive quarter selection
+  // Resident can only select consecutive quarters (e.g., Q3, Q3+Q4, Q3+Q4+Q1)
+  // But NOT Q3+Q1 (skipping Q4)
+  canSelectQuarter: (taxableUnitID, year, quarter, allQuarters) => {
     const state = get();
 
-    // Determine the current quarter based on current date
-    const now = new Date();
-    const currentMonth = now.getMonth(); // 0-11
-    const currentYear = now.getFullYear();
+    // Get all quarters for this taxable unit, sorted chronologically
+    const unitQuarters = allQuarters
+      .filter((q) => q.taxableUnitID === taxableUnitID)
+      .sort((a, b) => {
+        if (a.year !== b.year) return a.year - b.year;
+        return a.quarter - b.quarter;
+      });
 
-    // Map month to quarter: Jan-Mar=1, Apr-Jun=2, Jul-Sep=3, Oct-Dec=4
-    const currentQuarter = Math.floor(currentMonth / 3) + 1;
+    // Find the index of the quarter we're trying to select
+    const targetIndex = unitQuarters.findIndex(
+      (q) => q.year === year && q.quarter === quarter,
+    );
 
-    // If this is for a past year, it's arrears - can always select
-    if (taxYear < currentYear) return true;
+    if (targetIndex === -1) return false;
 
-    // If this is a future year, apply strict ordering from Q1
-    if (taxYear > currentYear) {
-      if (quarter === 1) return true;
-      for (let q = 1; q < quarter; q++) {
-        const isSelected = state.selectedQuarterlyTax.some(
-          (item) =>
-            item.taxableUnitID === taxableUnitID &&
-            item.taxYear === taxYear &&
-            item.quarter === q
-        );
-        if (!isSelected) return false;
-      }
-      return true;
+    // Get currently selected quarters for this unit
+    const selectedForUnit = state.selectedQuarters
+      .filter((item) => item.taxableUnitID === taxableUnitID)
+      .sort((a, b) => {
+        if (a.year !== b.year) return a.year - b.year;
+        return a.quarter - b.quarter;
+      });
+
+    // If nothing is selected, can only select the first unpaid quarter
+    if (selectedForUnit.length === 0) {
+      return targetIndex === 0;
     }
 
-    // For current year:
-    // - Current quarter and earlier: can select (these are arrears or current)
-    // - Future quarters: only if it's the next consecutive quarter
-    if (quarter <= currentQuarter) {
-      return true; // Can select current or past quarters (arrears)
-    }
+    // Find indices of selected quarters
+    const selectedIndices = selectedForUnit.map((sq) =>
+      unitQuarters.findIndex(
+        (q) => q.year === sq.year && q.quarter === sq.quarter,
+      ),
+    );
 
-    // For quarters after current quarter, apply ordering rule
-    // Example: if we're in Q3, can select Q4 only if Q3 is selected
-    // Cannot select Q4 if we try to skip Q3
-    if (quarter === currentQuarter + 1) {
-      // Check if current quarter is selected
-      return state.selectedQuarterlyTax.some(
-        (item) =>
-          item.taxableUnitID === taxableUnitID &&
-          item.taxYear === taxYear &&
-          item.quarter === currentQuarter
-      );
-    }
+    // Check if all currently selected quarters are consecutive
+    const minSelected = Math.min(...selectedIndices);
+    const maxSelected = Math.max(...selectedIndices);
 
-    // Cannot select quarters more than 1 ahead of current quarter
-    return false;
+    // Can select if it's immediately before the min or immediately after the max
+    return targetIndex === minSelected - 1 || targetIndex === maxSelected + 1;
   },
 
   // Calculations
-  getTotalArrearsAmount: () => {
+  getTotalDueAmount: () => {
     const state = get();
-    return state.selectedArrears.reduce(
-      (sum, item) => sum + item.outstandingBalance,
-      0
+    return state.selectedQuarters.reduce(
+      (sum, item) => sum + (item.dueAmount || 0),
+      0,
     );
   },
 
-  getTotalArrearsSurcharge: () => {
+  getTotalSurcharge: () => {
     const state = get();
-    return state.selectedArrears.reduce(
-      (sum, item) => sum + (item.surchargeAccrued || 0),
-      0
+    return state.selectedQuarters.reduce(
+      (sum, item) => sum + (item.surchargeAmount || 0),
+      0,
     );
   },
 
-  getTotalQuarterlyTaxAmount: () => {
+  getTotalDiscount: () => {
     const state = get();
-    return state.selectedQuarterlyTax.reduce(
-      (sum, item) => sum + item.amountDue,
-      0
-    );
-  },
-
-  getTotalQuarterlyDiscount: () => {
-    const state = get();
-    return state.selectedQuarterlyTax.reduce(
+    return state.selectedQuarters.reduce(
       (sum, item) => sum + (item.discountAmount || 0),
-      0
+      0,
     );
   },
 
   getTotalAmount: () => {
     const state = get();
-    const arrearsTotal = state.getTotalArrearsAmount();
-    const arrearsSurcharge = state.getTotalArrearsSurcharge();
-    const quarterlyTotal = state.getTotalQuarterlyTaxAmount();
-    return arrearsTotal + arrearsSurcharge + quarterlyTotal;
+    const dueAmount = state.getTotalDueAmount() || 0;
+    const surcharge = state.getTotalSurcharge() || 0;
+    const discount = state.getTotalDiscount() || 0;
+    return dueAmount + surcharge - discount;
   },
 
   // Clear actions
   clearCart: () =>
     set(() => ({
-      selectedArrears: [],
-      selectedQuarterlyTax: [],
-    })),
-
-  clearArrears: () =>
-    set((state) => ({
-      selectedArrears: [],
-    })),
-
-  clearQuarterlyTax: () =>
-    set((state) => ({
-      selectedQuarterlyTax: [],
+      selectedQuarters: [],
     })),
 }));

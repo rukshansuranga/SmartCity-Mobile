@@ -19,30 +19,39 @@ export default function PaymentSummarySection({
   processingPayment = false,
 }: PaymentSummarySectionProps) {
   const {
-    selectedArrears,
-    selectedQuarterlyTax,
-    getTotalArrearsAmount,
-    getTotalArrearsSurcharge,
-    getTotalQuarterlyTaxAmount,
-    getTotalQuarterlyDiscount,
+    selectedQuarters,
+    getTotalDueAmount,
+    getTotalSurcharge,
+    getTotalDiscount,
     getTotalAmount,
     clearCart,
   } = usePaymentCartStore();
 
-  const arrearsAmount = getTotalArrearsAmount();
-  const arrearsSurcharge = getTotalArrearsSurcharge();
-  const quarterlyAmount = getTotalQuarterlyTaxAmount();
-  const quarterlyDiscount = getTotalQuarterlyDiscount();
-  const totalAmount = getTotalAmount();
+  const dueAmount = getTotalDueAmount() || 0;
+  const surcharge = getTotalSurcharge() || 0;
+  const discount = getTotalDiscount() || 0;
+  const totalAmount = getTotalAmount() || 0;
 
-  const hasItems =
-    selectedArrears.length > 0 || selectedQuarterlyTax.length > 0;
+  const hasItems = selectedQuarters.length > 0;
+
+  // Group quarters by land parcel for display
+  const quartersByParcel = selectedQuarters.reduce(
+    (acc, quarter) => {
+      const key = quarter.landParcelID;
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(quarter);
+      return acc;
+    },
+    {} as Record<number, typeof selectedQuarters>,
+  );
 
   return (
     <ScrollView className="flex-1 bg-[#c7f9cc]">
       <View className="p-4">
         <Text className="text-xl font-bold text-[#22577a] mb-4">
-          Payment Summary
+          Payment Cart
         </Text>
 
         {!hasItems ? (
@@ -52,84 +61,98 @@ export default function PaymentSummarySection({
               Your cart is empty
             </Text>
             <Text className="text-sm text-[#38a3a5] mt-2 text-center">
-              Select arrears or quarterly taxes from the previous tabs to add
-              them to your payment cart
+              Select unpaid quarters from the previous tab to add them to your
+              payment cart
             </Text>
           </View>
         ) : (
           <>
-            {/* Arrears Summary */}
-            {selectedArrears.length > 0 && (
-              <View className="mb-4 border-2 border-[#38a3a5] rounded-lg overflow-hidden">
-                <View className="bg-[#38a3a5] p-3 border-b border-[#38a3a5]">
-                  <Text className="text-white font-semibold text-base">
-                    Arrears ({selectedArrears.length} item
-                    {selectedArrears.length !== 1 ? "s" : ""})
+            {/* Selected Quarters Summary */}
+            <View className="mb-4 border-2 border-[#38a3a5] rounded-lg overflow-hidden">
+              <View className="bg-[#38a3a5] p-3 border-b border-[#38a3a5]">
+                <Text className="text-white font-semibold text-base">
+                  Selected Quarters ({selectedQuarters.length} item
+                  {selectedQuarters.length !== 1 ? "s" : ""})
+                </Text>
+              </View>
+              <View className="bg-white p-4">
+                {Object.entries(quartersByParcel).map(
+                  ([landParcelId, quarters]) => (
+                    <View key={landParcelId} className="mb-3">
+                      <Text className="text-[#22577a] font-semibold mb-2">
+                        Land Parcel #{landParcelId}
+                      </Text>
+                      {quarters
+                        .sort((a, b) => {
+                          if (a.year !== b.year) return a.year - b.year;
+                          return a.quarter - b.quarter;
+                        })
+                        .map((quarter) => (
+                          <View
+                            key={quarter.assessmentQuarterID}
+                            className="flex-row justify-between items-center pl-3 py-1"
+                          >
+                            <Text className="text-[#22577a] text-sm">
+                              Q{quarter.quarter} {quarter.year} -{" "}
+                              {quarter.unitReference}
+                            </Text>
+                            <Text className="text-[#22577a] text-sm font-medium">
+                              LKR{" "}
+                              {(
+                                quarter.dueAmount +
+                                quarter.surchargeAmount -
+                                quarter.discountAmount
+                              ).toFixed(2)}
+                            </Text>
+                          </View>
+                        ))}
+                    </View>
+                  ),
+                )}
+              </View>
+            </View>
+
+            {/* Payment Breakdown */}
+            <View className="mb-4 border-2 border-[#57cc99] rounded-lg overflow-hidden">
+              <View className="bg-[#57cc99] p-3 border-b border-[#57cc99]">
+                <Text className="text-white font-semibold text-base">
+                  Payment Breakdown
+                </Text>
+              </View>
+              <View className="bg-white p-4">
+                <View className="flex-row justify-between mb-2">
+                  <Text className="text-[#22577a]">Due Amount:</Text>
+                  <Text className="text-[#22577a] font-medium">
+                    LKR {dueAmount.toFixed(2)}
                   </Text>
                 </View>
-                <View className="bg-white p-4">
+                {surcharge > 0 && (
                   <View className="flex-row justify-between mb-2">
-                    <Text className="text-[#22577a]">Outstanding Amount:</Text>
-                    <Text className="text-[#22577a] font-medium">
-                      LKR {arrearsAmount.toFixed(2)}
-                    </Text>
-                  </View>
-                  <View className="flex-row justify-between">
                     <Text className="text-[#22577a]">Surcharge:</Text>
                     <Text className="text-red-600 font-medium">
-                      LKR {arrearsSurcharge.toFixed(2)}
+                      +LKR {surcharge.toFixed(2)}
                     </Text>
                   </View>
-                  <View className="h-px bg-[#c7f9cc] my-2" />
-                  <View className="flex-row justify-between">
-                    <Text className="text-[#22577a] font-semibold">
-                      Subtotal (Arrears):
-                    </Text>
-                    <Text className="text-[#22577a] font-semibold">
-                      LKR {(arrearsAmount + arrearsSurcharge).toFixed(2)}
+                )}
+                {discount > 0 && (
+                  <View className="flex-row justify-between mb-2">
+                    <Text className="text-[#22577a]">Discount:</Text>
+                    <Text className="text-[#57cc99] font-medium">
+                      -LKR {discount.toFixed(2)}
                     </Text>
                   </View>
-                </View>
-              </View>
-            )}
-
-            {/* Quarterly Tax Summary */}
-            {selectedQuarterlyTax.length > 0 && (
-              <View className="mb-4 border-2 border-[#57cc99] rounded-lg overflow-hidden">
-                <View className="bg-[#57cc99] p-3 border-b border-[#57cc99]">
-                  <Text className="text-white font-semibold text-base">
-                    Current & Future Quarters ({selectedQuarterlyTax.length}{" "}
-                    item
-                    {selectedQuarterlyTax.length !== 1 ? "s" : ""})
+                )}
+                <View className="h-px bg-[#c7f9cc] my-2" />
+                <View className="flex-row justify-between">
+                  <Text className="text-[#22577a] font-semibold">
+                    Subtotal:
+                  </Text>
+                  <Text className="text-[#22577a] font-semibold">
+                    LKR {totalAmount.toFixed(2)}
                   </Text>
                 </View>
-                <View className="bg-white p-4">
-                  <View className="flex-row justify-between mb-2">
-                    <Text className="text-[#22577a]">Quarterly Tax:</Text>
-                    <Text className="text-[#22577a] font-medium">
-                      LKR {(quarterlyAmount + quarterlyDiscount).toFixed(2)}
-                    </Text>
-                  </View>
-                  {quarterlyDiscount > 0 && (
-                    <View className="flex-row justify-between mb-2">
-                      <Text className="text-[#22577a]">Discount:</Text>
-                      <Text className="text-[#57cc99] font-medium">
-                        -LKR {quarterlyDiscount.toFixed(2)}
-                      </Text>
-                    </View>
-                  )}
-                  <View className="h-px bg-[#c7f9cc] my-2" />
-                  <View className="flex-row justify-between">
-                    <Text className="text-[#22577a] font-semibold">
-                      Subtotal (Quarterly):
-                    </Text>
-                    <Text className="text-[#22577a] font-semibold">
-                      LKR {quarterlyAmount.toFixed(2)}
-                    </Text>
-                  </View>
-                </View>
               </View>
-            )}
+            </View>
 
             {/* Total Amount */}
             <View className="mb-6 bg-[#22577a] rounded-lg p-4 border-2 border-[#38a3a5]">
@@ -143,7 +166,7 @@ export default function PaymentSummarySection({
               </View>
             </View>
 
-            {/* Payment Method Section (Stripe Placeholder) */}
+            {/* Payment Method Section (Stripe) */}
             <View className="mb-4 border-2 border-[#57cc99] rounded-lg overflow-hidden">
               <View className="bg-[#c7f9cc] p-3 border-b border-[#57cc99]">
                 <Text className="text-[#22577a] font-semibold text-base">
@@ -151,14 +174,13 @@ export default function PaymentSummarySection({
                 </Text>
               </View>
               <View className="bg-white p-4">
-                {/* Stripe Payment Button Placeholder */}
                 <View className="border-2 border-dashed border-[#57cc99] rounded-lg p-6 items-center">
                   <Ionicons name="card-outline" size={48} color="#38a3a5" />
                   <Text className="text-[#22577a] font-medium mt-2">
                     Stripe Payment Integration
                   </Text>
                   <Text className="text-[#38a3a5] text-sm text-center mt-1">
-                    Payment gateway will be integrated here
+                    Secure payment gateway
                   </Text>
                   <View className="flex-row items-center mt-3">
                     <Ionicons name="lock-closed" size={16} color="#38a3a5" />
@@ -229,14 +251,14 @@ export default function PaymentSummarySection({
                   <Text className="text-[#22577a] text-sm">
                     • Your payment will be processed securely through Stripe
                   </Text>
-                  <Text className="text-blue-800 text-sm">
+                  <Text className="text-[#22577a] text-sm">
                     • You will receive a payment confirmation via email
                   </Text>
-                  <Text className="text-blue-800 text-sm">
-                    • Discount deadlines apply for quarterly taxes
+                  <Text className="text-[#22577a] text-sm">
+                    • Payments cannot be partial - full selected amount required
                   </Text>
-                  <Text className="text-blue-800 text-sm">
-                    • Arrears must be paid to avoid additional surcharges
+                  <Text className="text-[#22577a] text-sm">
+                    • Quarters must be paid consecutively
                   </Text>
                 </View>
               </View>

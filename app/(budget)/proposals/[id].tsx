@@ -45,6 +45,13 @@ export default function ProposalDetailScreen() {
     );
   }
 
+  console.log(
+    "votes",
+    proposal.upvoteCount,
+    proposal.downvoteCount,
+    proposal.commentCount,
+  );
+
   return (
     <>
       <Stack.Screen
@@ -71,7 +78,7 @@ export default function ProposalDetailScreen() {
           <View className="flex-row items-center mb-4">
             <MaterialCommunityIcons name="account" size={18} color="#64748B" />
             <Text className="text-sm text-gray-600 ml-1 mr-4">
-              by {proposal.residentName}
+              by {proposal.residentName || "Unknown"}
             </Text>
             <MaterialCommunityIcons name="cash" size={18} color="#64748B" />
             <Text className="text-sm text-gray-600 ml-1">
@@ -98,7 +105,7 @@ export default function ProposalDetailScreen() {
                 color="#22C55E"
               />
               <Text className="text-lg font-semibold text-gray-800 ml-2">
-                {proposal.upvotes || 0}
+                {proposal.upvoteCount || 0}
               </Text>
             </View>
             <View className="flex-row items-center">
@@ -108,7 +115,7 @@ export default function ProposalDetailScreen() {
                 color="#EF4444"
               />
               <Text className="text-lg font-semibold text-gray-800 ml-2">
-                {proposal.downvotes || 0}
+                {proposal.downvoteCount || 0}
               </Text>
             </View>
             <View className="flex-row items-center">
@@ -138,7 +145,7 @@ export default function ProposalDetailScreen() {
                     {status.status}
                   </Text>
                   <Text className="text-xs text-gray-500">
-                    {new Date(status.statusDate).toLocaleDateString()}
+                    {new Date(status.changedAt).toLocaleDateString()}
                   </Text>
                 </View>
               </View>

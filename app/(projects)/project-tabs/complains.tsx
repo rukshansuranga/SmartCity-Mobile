@@ -41,10 +41,10 @@ export default function Complains() {
     try {
       console.log(
         "Fetching complains for project IDxxxxxxxx:",
-        currentProjectId
+        currentProjectId,
       );
       const response = await getProjectComplainsByProjectId(
-        Number(currentProjectId)
+        Number(currentProjectId),
       );
 
       if (!response.isSuccess) {
@@ -285,7 +285,7 @@ export default function Complains() {
               </Text>
               <ComplainAddModal
                 project={{ projectId: Number(currentProjectId) }}
-                closeModel={handleCloseAddComplainModal}
+                onComplainAdded={handleCloseAddComplainModal}
               />
             </View>
           </View>

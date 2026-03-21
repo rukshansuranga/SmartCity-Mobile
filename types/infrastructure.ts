@@ -57,10 +57,11 @@ export interface PolygonLocation {
 export interface InfrastructureAssetBase {
   assetId: string;
   councilId: string;
-  assetType: AssetType;
+  assetType: AssetType | string;
   assetName: string;
   assetCode?: string;
   geometryType: "Point" | "Polygon" | "LineString";
+  location: PointLocation | PolygonLocation;
   status: AssetStatus;
   note?: string;
   createdAt: string;
@@ -69,11 +70,8 @@ export interface InfrastructureAssetBase {
   updatedBy?: string;
 }
 
-// Specific asset type interfaces
-export interface Library extends InfrastructureAssetBase {
-  assetType: AssetType.Library;
-  geometryType: "Point";
-  location: PointLocation;
+// Metadata interfaces for each asset type
+export interface LibraryMetadata {
   openDays?: string;
   openingHours?: string;
   facilities?: string;
@@ -83,10 +81,7 @@ export interface Library extends InfrastructureAssetBase {
   mobile?: string;
 }
 
-export interface Streetlight extends InfrastructureAssetBase {
-  assetType: AssetType.Streetlight;
-  geometryType: "Point";
-  location: PointLocation;
+export interface StreetlightMetadata {
   bulbType: BulbType;
   wattage: number;
   lastMaintenanceDate?: string;
@@ -95,10 +90,7 @@ export interface Streetlight extends InfrastructureAssetBase {
   solar: boolean;
 }
 
-export interface Playground extends InfrastructureAssetBase {
-  assetType: AssetType.Playground;
-  geometryType: "Polygon" | "Point";
-  location: PolygonLocation | PointLocation;
+export interface PlaygroundMetadata {
   facilities?: string;
   area_SqMeters: number;
   hasShade: boolean;
@@ -106,36 +98,70 @@ export interface Playground extends InfrastructureAssetBase {
   entrance: EntranceType;
 }
 
-export interface Bin extends InfrastructureAssetBase {
-  assetType: AssetType.Bin;
-  geometryType: "Point";
-  location: PointLocation;
+export interface BinMetadata {
   capacity_Liters: number;
-  binType: BinType;
+  binType: BinType | string;
   collectionDay?: string;
   lastEmptied?: string;
 }
 
-export interface BusStop extends InfrastructureAssetBase {
-  assetType: AssetType.BusStop;
-  geometryType: "Point";
-  location: PointLocation;
+export interface BusStopMetadata {
   routesServed?: string;
   hasShelter: boolean;
   hasBench: boolean;
   timetable?: string;
 }
 
-export interface Park extends InfrastructureAssetBase {
-  assetType: AssetType.Park;
-  geometryType: "Polygon";
-  location: PolygonLocation;
+export interface ParkMetadata {
   facilities?: string;
   area_SqMeters: number;
   hasPlayground: boolean;
   hasParking: boolean;
   entrance: EntranceType;
   openingHours?: string;
+}
+
+// Specific asset type interfaces with metadata
+export interface Library extends InfrastructureAssetBase {
+  assetType: AssetType.Library | "Library";
+  geometryType: "Point";
+  location: PointLocation;
+  metadata: LibraryMetadata;
+}
+
+export interface Streetlight extends InfrastructureAssetBase {
+  assetType: AssetType.Streetlight | "Streetlight";
+  geometryType: "Point";
+  location: PointLocation;
+  metadata: StreetlightMetadata;
+}
+
+export interface Playground extends InfrastructureAssetBase {
+  assetType: AssetType.Playground | "Playground";
+  geometryType: "Polygon" | "Point";
+  location: PolygonLocation | PointLocation;
+  metadata: PlaygroundMetadata;
+}
+
+export interface Bin extends InfrastructureAssetBase {
+  assetType: AssetType.Bin | "Bin";
+  geometryType: "Point";
+  location: PointLocation;
+  metadata: BinMetadata;
+}
+
+export interface BusStop extends InfrastructureAssetBase {
+  assetType: AssetType.BusStop | "BusStop";
+  geometryType: "Point";
+  location: PointLocation;
+  metadata: BusStopMetadata;
+}
+
+export interface Park extends InfrastructureAssetBase {
+  assetType: AssetType.Park | "Park";
+  geometryType: "Polygon";
+  location: PolygonLocation;
+  metadata: ParkMetadata;
 }
 
 // Union type for all infrastructure assets

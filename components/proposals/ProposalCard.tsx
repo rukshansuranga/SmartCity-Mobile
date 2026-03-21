@@ -11,11 +11,19 @@ interface ProposalCardProps {
 }
 
 export function ProposalCard({ proposal, onPress, onVote }: ProposalCardProps) {
-  const netVotes = (proposal.upvotes || 0) - (proposal.downvotes || 0);
+  const netVotes = (proposal.upvoteCount || 0) - (proposal.downvoteCount || 0);
+
+  // Convert userVoteType (number) to VoteType for comparison
+  const userVote: VoteType | undefined =
+    proposal.userVoteType === 1
+      ? "Upvote"
+      : proposal.userVoteType === -1
+        ? "Downvote"
+        : undefined;
 
   const handleVote = (voteType: VoteType) => {
     // If already voted same type, remove vote
-    if (proposal.userVote === voteType) {
+    if (userVote === voteType) {
       onVote(voteType); // This will toggle/remove the vote
     } else {
       onVote(voteType);
@@ -52,7 +60,7 @@ export function ProposalCard({ proposal, onPress, onVote }: ProposalCardProps) {
       <View className="flex-row items-center mb-3">
         <MaterialCommunityIcons name="account" size={16} color="#64748B" />
         <Text className="text-xs text-gray-600 ml-1 mr-3">
-          by {proposal.residentName}
+          by {proposal.residentName || "Unknown"}
         </Text>
         <MaterialCommunityIcons name="cash" size={16} color="#64748B" />
         <Text className="text-xs text-gray-600 ml-1">
@@ -69,34 +77,30 @@ export function ProposalCard({ proposal, onPress, onVote }: ProposalCardProps) {
             className="flex-row items-center px-3 py-2 rounded-full"
             style={{
               backgroundColor:
-                proposal.userVote === "Upvote"
+                userVote === "Upvote"
                   ? BudgetColors.vote.upvote + "20"
                   : "#F1F5F9",
             }}
           >
             <MaterialCommunityIcons
               name={
-                proposal.userVote === "Upvote"
+                userVote === "Upvote"
                   ? "arrow-up-bold"
                   : "arrow-up-bold-outline"
               }
               size={20}
               color={
-                proposal.userVote === "Upvote"
-                  ? BudgetColors.vote.upvote
-                  : "#64748B"
+                userVote === "Upvote" ? BudgetColors.vote.upvote : "#64748B"
               }
             />
             <Text
               className="ml-1 font-semibold"
               style={{
                 color:
-                  proposal.userVote === "Upvote"
-                    ? BudgetColors.vote.upvote
-                    : "#64748B",
+                  userVote === "Upvote" ? BudgetColors.vote.upvote : "#64748B",
               }}
             >
-              {proposal.upvotes}
+              {proposal.upvoteCount || 0}
             </Text>
           </TouchableOpacity>
 
@@ -106,34 +110,32 @@ export function ProposalCard({ proposal, onPress, onVote }: ProposalCardProps) {
             className="flex-row items-center px-3 py-2 rounded-full"
             style={{
               backgroundColor:
-                proposal.userVote === "Downvote"
+                userVote === "Downvote"
                   ? BudgetColors.vote.downvote + "20"
                   : "#F1F5F9",
             }}
           >
             <MaterialCommunityIcons
               name={
-                proposal.userVote === "Downvote"
+                userVote === "Downvote"
                   ? "arrow-down-bold"
                   : "arrow-down-bold-outline"
               }
               size={20}
               color={
-                proposal.userVote === "Downvote"
-                  ? BudgetColors.vote.downvote
-                  : "#64748B"
+                userVote === "Downvote" ? BudgetColors.vote.downvote : "#64748B"
               }
             />
             <Text
               className="ml-1 font-semibold"
               style={{
                 color:
-                  proposal.userVote === "Downvote"
+                  userVote === "Downvote"
                     ? BudgetColors.vote.downvote
                     : "#64748B",
               }}
             >
-              {proposal.downvotes}
+              {proposal.downvoteCount || 0}
             </Text>
           </TouchableOpacity>
 
@@ -164,7 +166,7 @@ export function ProposalCard({ proposal, onPress, onVote }: ProposalCardProps) {
             color="#64748B"
           />
           <Text className="text-sm text-gray-600 ml-1">
-            {proposal.commentCount}
+            {proposal.commentCount || 0}
           </Text>
         </View>
       </View>

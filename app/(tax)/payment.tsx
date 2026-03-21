@@ -2,62 +2,66 @@ import {
   confirmPayment,
   convertToCents,
   createPaymentIntent,
-  formatQuarterlyTaxId,
 } from "@/api/paymentAction";
-import {
-  getArrearsByResidentId,
-  getQuarterlyTaxByResidentId,
-} from "@/api/taxAction";
-import ArrearsPaymentSection from "@/components/tax/ArrearsPaymentSection";
+import { getUnpaidQuartersByResidentId } from "@/api/taxAction";
 import PaymentSummarySection from "@/components/tax/PaymentSummarySection";
-import QuarterlyTaxPaymentSection from "@/components/tax/QuarterlyTaxPaymentSection";
+import UnpaidQuartersSection from "@/components/tax/UnpaidQuartersSection";
 import { useAuthStore } from "@/stores/authStore";
 import { usePaymentCartStore } from "@/stores/paymentCartStore";
-import {
-  ApiResponse,
-  LandParcelWithArrears,
-  QuarterlyTaxByResidentDto,
-} from "@/types";
+import { ApiResponse, UnpaidQuartersByResidentDto } from "@/types";
 import { useStripe } from "@stripe/stripe-react-native";
 import React, { useEffect, useState } from "react";
 import { Alert, Pressable, Text, View } from "react-native";
 import Toast from "react-native-toast-message";
 
-type TabType = "arrears" | "quarterly" | "payments";
+type TabType = "unpaid" | "payments";
 
 export default function PaymentScreen() {
   const { userInfo } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<TabType>("arrears");
-  const [arrears, setArrears] = useState<LandParcelWithArrears[]>([]);
-  const [quarterlyTax, setQuarterlyTax] = useState<QuarterlyTaxByResidentDto[]>(
-    [],
-  );
-  const [loadingArrears, setLoadingArrears] = useState(false);
-  const [loadingQuarterly, setLoadingQuarterly] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabType>("unpaid");
+  const [unpaidQuarters, setUnpaidQuarters] = useState<
+    UnpaidQuartersByResidentDto[]
+  >([]);
+  const [loadingUnpaid, setLoadingUnpaid] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
 
-  const { getTotalAmount, selectedArrears, selectedQuarterlyTax, clearCart } =
-    usePaymentCartStore();
+  const { getTotalAmount, selectedQuarters, clearCart } = usePaymentCartStore();
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
   const residentId = userInfo?.sub;
 
-  // Fetch arrears data on mount
-  useEffect(() => {
-    fetchArrears();
+  // Fetch unpaid quarters data function
+  const fetchUnpaidQuarters = React.useCallback(async () => {
+    if (!residentId) return;
+
+    setLoadingUnpaid(true);
+    try {
+      const response: ApiResponse<UnpaidQuartersByResidentDto[]> =
+        await getUnpaidQuartersByResidentId(residentId);
+
+      if (response.isSuccess && response.data) {
+        setUnpaidQuarters(response.data);
+      } else {
+        console.error("Failed to fetch unpaid quarters:", response.message);
+      }
+    } catch (error) {
+      console.error("Error fetching unpaid quarters:", error);
+    } finally {
+      setLoadingUnpaid(false);
+    }
   }, [residentId]);
 
-  // Fetch quarterly tax data on mount
-  // useEffect(() => {
-  //   fetchQuarterlyTax();
-  // }, [residentId]);
+  // Fetch unpaid quarters data on mount
+  useEffect(() => {
+    fetchUnpaidQuarters();
+  }, [fetchUnpaidQuarters]);
 
   const handleProceedToPayment = async () => {
     const total = getTotalAmount();
     if (total === 0) {
       Alert.alert(
         "Cart Empty",
-        "Please select items to pay before proceeding to payment.",
+        "Please select quarters to pay before proceeding to payment.",
         [{ text: "OK" }],
       );
       return;
@@ -72,19 +76,17 @@ export default function PaymentScreen() {
 
     try {
       // Step 1: Prepare payment data
-      const arrearsIds = selectedArrears.map((item) => item.arrearsID);
-      const quarterlyTaxIds = selectedQuarterlyTax.map((item) =>
-        formatQuarterlyTaxId(item.taxableUnitID, item.taxYear, item.quarter),
+      const assessmentQuarterIds = selectedQuarters.map(
+        (item) => item.assessmentQuarterID,
       );
 
-      const description = `Tax Payment - ${arrearsIds.length} arrears, ${quarterlyTaxIds.length} quarterly taxes`;
+      const description = `Tax Payment - ${assessmentQuarterIds.length} quarters`;
 
       const paymentIntentResponse = await createPaymentIntent({
         amount: convertToCents(total),
         currency: "lkr",
         residentId,
-        arrearsIds,
-        quarterlyTaxIds,
+        assessmentQuarterIds: assessmentQuarterIds.map(String),
         description,
       });
 
@@ -133,10 +135,7 @@ export default function PaymentScreen() {
 
       const confirmResponse = await confirmPayment({
         paymentIntentId,
-        residentId,
-        arrearsIds,
-        quarterlyTaxIds,
-        total,
+        assessmentQuarterIds: assessmentQuarterIds,
       });
 
       if (!confirmResponse) {
@@ -154,8 +153,7 @@ export default function PaymentScreen() {
             text: "OK",
             onPress: () => {
               // Refresh data after payment
-              fetchArrears();
-              fetchQuarterlyTax();
+              fetchUnpaidQuarters();
             },
           },
         ],
@@ -184,48 +182,6 @@ export default function PaymentScreen() {
     }
   };
 
-  // Fetch arrears data function (extracted for reuse)
-  const fetchArrears = async () => {
-    if (!residentId) return;
-
-    setLoadingArrears(true);
-    try {
-      const response: ApiResponse<LandParcelWithArrears[]> =
-        await getArrearsByResidentId(residentId);
-
-      if (response.isSuccess && response.data) {
-        setArrears(response.data);
-      } else {
-        console.error("Failed to fetch arrears:", response.message);
-      }
-    } catch (error) {
-      console.error("Error fetching arrears:", error);
-    } finally {
-      setLoadingArrears(false);
-    }
-  };
-
-  // Fetch quarterly tax data function (extracted for reuse)
-  const fetchQuarterlyTax = async () => {
-    if (!residentId) return;
-
-    setLoadingQuarterly(true);
-    try {
-      const response: ApiResponse<QuarterlyTaxByResidentDto[]> =
-        await getQuarterlyTaxByResidentId(residentId);
-
-      if (response.isSuccess && response.data) {
-        setQuarterlyTax(response.data);
-      } else {
-        console.error("Failed to fetch quarterly tax:", response.message);
-      }
-    } catch (error) {
-      console.error("Error fetching quarterly tax:", error);
-    } finally {
-      setLoadingQuarterly(false);
-    }
-  };
-
   if (!residentId) {
     return (
       <View className="flex-1 bg-[#c7f9cc] items-center justify-center p-8">
@@ -245,60 +201,41 @@ export default function PaymentScreen() {
       <View className="bg-white px-4 py-3 flex-row border-b border-[#c7f9cc]">
         <Pressable
           className={`flex-1 py-3 px-4 rounded-lg mr-2 items-center ${
-            activeTab === "arrears" ? "bg-[#38a3a5]" : "bg-[#c7f9cc]"
+            activeTab === "unpaid" ? "bg-[#38a3a5]" : "bg-[#c7f9cc]"
           }`}
-          onPress={() => setActiveTab("arrears")}
+          onPress={() => setActiveTab("unpaid")}
         >
           <Text
             className={`font-semibold ${
-              activeTab === "arrears" ? "text-white" : "text-[#22577a]"
+              activeTab === "unpaid" ? "text-white" : "text-[#22577a]"
             }`}
           >
-            Arrears
-          </Text>
-        </Pressable>
-
-        <Pressable
-          className={`flex-1 py-3 px-4 rounded-lg mr-2 items-center ${
-            activeTab === "quarterly" ? "bg-[#57cc99]" : "bg-[#c7f9cc]"
-          }`}
-          onPress={() => setActiveTab("quarterly")}
-        >
-          <Text
-            className={`font-semibold ${
-              activeTab === "quarterly" ? "text-white" : "text-[#22577a]"
-            }`}
-          >
-            Quarterly
+            Unpaid/Overdue
           </Text>
         </Pressable>
 
         <Pressable
           className={`flex-1 py-3 px-4 rounded-lg items-center ${
-            activeTab === "payments" ? "bg-[#80ed99]" : "bg-[#c7f9cc]"
+            activeTab === "payments" ? "bg-[#57cc99]" : "bg-[#c7f9cc]"
           }`}
           onPress={() => setActiveTab("payments")}
         >
           <Text
             className={`font-semibold ${
-              activeTab === "payments" ? "text-[#22577a]" : "text-[#22577a]"
+              activeTab === "payments" ? "text-white" : "text-[#22577a]"
             }`}
           >
-            Payments
+            Payment Cart
           </Text>
         </Pressable>
       </View>
 
       {/* Tab Content */}
       <View className="flex-1">
-        {activeTab === "arrears" && (
-          <ArrearsPaymentSection arrears={arrears} loading={loadingArrears} />
-        )}
-
-        {activeTab === "quarterly" && (
-          <QuarterlyTaxPaymentSection
-            quarterlyTax={quarterlyTax}
-            loading={loadingQuarterly}
+        {activeTab === "unpaid" && (
+          <UnpaidQuartersSection
+            unpaidQuarters={unpaidQuarters}
+            loading={loadingUnpaid}
           />
         )}
 

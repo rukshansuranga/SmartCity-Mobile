@@ -20,11 +20,13 @@ import {
 interface ArrearsPaymentSectionProps {
   arrears: LandParcelWithArrears[];
   loading: boolean;
+  totalOutstanding?: number;
 }
 
 export default function ArrearsPaymentSection({
   arrears,
   loading,
+  totalOutstanding,
 }: ArrearsPaymentSectionProps) {
   const {
     addArrears,
@@ -41,7 +43,7 @@ export default function ArrearsPaymentSection({
       arrear: Arrears,
       taxableUnitID: number,
       unitReference: string,
-      landParcelID: number
+      landParcelID: number,
     ): ArrearsCartItem => {
       return {
         arrearsID: arrear.arrearsID,
@@ -54,7 +56,7 @@ export default function ArrearsPaymentSection({
         surchargeAccrued: arrear.surchargeAccrued || 0,
       };
     },
-    []
+    [],
   );
 
   const handleTaxableUnitToggle = useCallback(
@@ -64,11 +66,11 @@ export default function ArrearsPaymentSection({
           arrear,
           taxableUnit.taxableUnitID,
           taxableUnit.unitReference,
-          landParcelID
-        )
+          landParcelID,
+        ),
       );
       const allSelected = cartItems.every((item) =>
-        isArrearsSelected(item.arrearsID)
+        isArrearsSelected(item.arrearsID),
       );
 
       if (allSelected) {
@@ -78,7 +80,7 @@ export default function ArrearsPaymentSection({
         addMultipleArrears(cartItems);
       }
     },
-    [isArrearsSelected, removeArrears, addMultipleArrears, convertToCartItem]
+    [isArrearsSelected, removeArrears, addMultipleArrears, convertToCartItem],
   );
 
   const handleArrearsToggle = useCallback(
@@ -86,13 +88,13 @@ export default function ArrearsPaymentSection({
       arrear: Arrears,
       taxableUnitID: number,
       unitReference: string,
-      landParcelID: number
+      landParcelID: number,
     ) => {
       const cartItem = convertToCartItem(
         arrear,
         taxableUnitID,
         unitReference,
-        landParcelID
+        landParcelID,
       );
       if (isArrearsSelected(cartItem.arrearsID)) {
         removeArrears(cartItem.arrearsID);
@@ -100,7 +102,7 @@ export default function ArrearsPaymentSection({
         addArrears(cartItem);
       }
     },
-    [isArrearsSelected, removeArrears, addArrears, convertToCartItem]
+    [isArrearsSelected, removeArrears, addArrears, convertToCartItem],
   );
 
   if (loading) {
@@ -146,18 +148,20 @@ export default function ArrearsPaymentSection({
 
             {/* Taxable Units */}
             {landParcel.taxableUnits.map((taxableUnit) => {
-              const totalOutstanding = taxableUnit.arrears.reduce(
-                (sum, a) => sum + a.outstandingBalance,
-                0
-              );
+              // const totalOutstanding = taxableUnit.arrears.reduce(
+              //   (sum, a) => sum + (a.outstandingBalance || 0),
+              //   0,
+              // );
               const totalSurcharge = taxableUnit.arrears.reduce(
                 (sum, a) => sum + (a.surchargeAccrued || 0),
-                0
+                0,
               );
 
               const allSelected = taxableUnit.arrears.every((a) =>
-                isArrearsSelected(a.arrearsID)
+                isArrearsSelected(a.arrearsID),
               );
+
+              let outstanding = 0;
 
               return (
                 <View
@@ -170,7 +174,7 @@ export default function ArrearsPaymentSection({
                     onPress={() =>
                       handleTaxableUnitToggle(
                         taxableUnit,
-                        landParcel.landParcelID
+                        landParcel.landParcelID,
                       )
                     }
                   >
@@ -182,8 +186,8 @@ export default function ArrearsPaymentSection({
                         Type: {taxableUnit.unitType}
                       </Text>
                       <Text className="text-[#80ed99] text-sm">
-                        Outstanding: LKR {totalOutstanding.toFixed(2)} |
-                        Surcharge: LKR {totalSurcharge.toFixed(2)}
+                        Outstanding: LKR {(totalOutstanding || 0).toFixed(2)} |
+                        Surcharge: LKR {(totalSurcharge || 0).toFixed(2)}
                       </Text>
                     </View>
                     <View
@@ -203,6 +207,7 @@ export default function ArrearsPaymentSection({
                   <View className="bg-white">
                     {taxableUnit.arrears.map((arrear) => {
                       const isSelected = isArrearsSelected(arrear.arrearsID);
+                      outstanding += arrear.originalDueAmount || 0;
                       return (
                         <Pressable
                           key={arrear.arrearsID}
@@ -212,12 +217,16 @@ export default function ArrearsPaymentSection({
                               arrear,
                               taxableUnit.taxableUnitID,
                               taxableUnit.unitReference,
-                              landParcel.landParcelID
+                              landParcel.landParcelID,
                             )
                           }
                         >
                           <View className="flex-1">
                             <View className="flex-row items-center mb-1">
+                              <Text className="text-[#22577a] font-medium">
+                                {arrear.year}
+                                {" - "}
+                              </Text>
                               <Text className="text-[#22577a] font-medium">
                                 Quarter {arrear.dueQuarter}
                               </Text>
@@ -241,17 +250,16 @@ export default function ArrearsPaymentSection({
                             </View>
                             <Text className="text-sm text-[#38a3a5]">
                               Original: LKR{" "}
-                              {arrear.originalDueAmount.toFixed(2)}
+                              {(arrear.originalDueAmount || 0).toFixed(2)}
                             </Text>
                             <Text className="text-sm text-[#22577a] font-semibold">
-                              Outstanding: LKR{" "}
-                              {arrear.outstandingBalance.toFixed(2)}
+                              Outstanding: LKR {(outstanding || 0).toFixed(2)}
                             </Text>
                             {arrear.surchargeAccrued &&
                               arrear.surchargeAccrued > 0 && (
                                 <Text className="text-sm text-red-600">
                                   Surcharge: LKR{" "}
-                                  {arrear.surchargeAccrued.toFixed(2)}
+                                  {(arrear.surchargeAccrued || 0).toFixed(2)}
                                 </Text>
                               )}
                           </View>
@@ -288,13 +296,13 @@ export default function ArrearsPaymentSection({
           <View className="flex-row justify-between mb-1">
             <Text className="text-[#22577a]">Outstanding Amount:</Text>
             <Text className="text-[#22577a] font-semibold">
-              LKR {getTotalArrearsAmount().toFixed(2)}
+              LKR {(getTotalArrearsAmount() || 0).toFixed(2)}
             </Text>
           </View>
           <View className="flex-row justify-between mb-1">
             <Text className="text-[#22577a]">Surcharge:</Text>
             <Text className="text-red-600 font-semibold">
-              LKR {getTotalArrearsSurcharge().toFixed(2)}
+              LKR {(getTotalArrearsSurcharge() || 0).toFixed(2)}
             </Text>
           </View>
           <View className="h-px bg-[#57cc99] my-2" />
@@ -304,9 +312,10 @@ export default function ArrearsPaymentSection({
             </Text>
             <Text className="text-lg font-bold text-[#22577a]">
               LKR{" "}
-              {(getTotalArrearsAmount() + getTotalArrearsSurcharge()).toFixed(
-                2
-              )}
+              {(
+                (getTotalArrearsAmount() || 0) +
+                (getTotalArrearsSurcharge() || 0)
+              ).toFixed(2)}
             </Text>
           </View>
         </View>

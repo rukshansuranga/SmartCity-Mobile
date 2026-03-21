@@ -21,7 +21,7 @@ function TaxHeader({ options, route }) {
   async function handleLogout() {
     try {
       await fetch(
-        `${process.env.EXPO_PUBLIC_KEYCLOAK_URL}/protocol/openid-connect/logout?id_token_hint=${idToken}`
+        `${process.env.EXPO_PUBLIC_KEYCLOAK_URL}/protocol/openid-connect/logout?id_token_hint=${idToken}`,
       );
       logOut();
     } catch (e) {

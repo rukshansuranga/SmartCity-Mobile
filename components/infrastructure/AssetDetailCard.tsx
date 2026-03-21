@@ -34,26 +34,39 @@ const AssetDetailCard: React.FC<AssetDetailCardProps> = ({ asset }) => {
   const statusLabel = ASSET_STATUS_LABELS[asset.status];
   const statusColor = STATUS_COLORS[asset.status];
 
+  // Convert string assetType to number for use with enum-based configs
+  const assetTypeNum =
+    typeof asset.assetType === "string"
+      ? AssetType[asset.assetType as keyof typeof AssetType]
+      : asset.assetType;
+
   const renderTypeSpecificDetails = () => {
-    switch (asset.assetType) {
+    switch (assetTypeNum) {
       case AssetType.Library: {
         const library = asset as Library;
         return (
           <>
-            {library.openingHours && (
-              <InfoRow label="Opening Hours" value={library.openingHours} />
+            {library.metadata.openingHours && (
+              <InfoRow
+                label="Opening Hours"
+                value={library.metadata.openingHours}
+              />
             )}
-            {library.openDays && (
-              <InfoRow label="Open Days" value={library.openDays} />
+            {library.metadata.openDays && (
+              <InfoRow label="Open Days" value={library.metadata.openDays} />
             )}
-            {library.facilities && (
-              <InfoRow label="Facilities" value={library.facilities} />
+            {library.metadata.facilities && (
+              <InfoRow label="Facilities" value={library.metadata.facilities} />
             )}
-            <InfoRow label="WiFi Available" value={library.hasWifi} />
-            {library.phone && <InfoRow label="Phone" value={library.phone} />}
-            {library.email && <InfoRow label="Email" value={library.email} />}
-            {library.mobile && (
-              <InfoRow label="Mobile" value={library.mobile} />
+            <InfoRow label="WiFi Available" value={library.metadata.hasWifi} />
+            {library.metadata.phone && (
+              <InfoRow label="Phone" value={library.metadata.phone} />
+            )}
+            {library.metadata.email && (
+              <InfoRow label="Email" value={library.metadata.email} />
+            )}
+            {library.metadata.mobile && (
+              <InfoRow label="Mobile" value={library.metadata.mobile} />
             )}
           </>
         );
@@ -65,18 +78,26 @@ const AssetDetailCard: React.FC<AssetDetailCardProps> = ({ asset }) => {
         const conditionLabels = ["Good", "Fair", "Poor", "Critical"];
         return (
           <>
-            <InfoRow label="Bulb Type" value={bulbTypeLabels[light.bulbType]} />
-            <InfoRow label="Wattage" value={`${light.wattage}W`} />
-            <InfoRow label="Height" value={`${light.height_Meters}m`} />
+            <InfoRow
+              label="Bulb Type"
+              value={bulbTypeLabels[light.metadata.bulbType]}
+            />
+            <InfoRow label="Wattage" value={`${light.metadata.wattage}W`} />
+            <InfoRow
+              label="Height"
+              value={`${light.metadata.height_Meters}m`}
+            />
             <InfoRow
               label="Pole Condition"
-              value={conditionLabels[light.poleCondition]}
+              value={conditionLabels[light.metadata.poleCondition]}
             />
-            <InfoRow label="Solar Powered" value={light.solar} />
-            {light.lastMaintenanceDate && (
+            <InfoRow label="Solar Powered" value={light.metadata.solar} />
+            {light.metadata.lastMaintenanceDate && (
               <InfoRow
                 label="Last Maintenance"
-                value={new Date(light.lastMaintenanceDate).toLocaleDateString()}
+                value={new Date(
+                  light.metadata.lastMaintenanceDate,
+                ).toLocaleDateString()}
               />
             )}
           </>
@@ -88,17 +109,23 @@ const AssetDetailCard: React.FC<AssetDetailCardProps> = ({ asset }) => {
         const entranceLabels = ["Free", "Reservation", "Paid"];
         return (
           <>
-            <InfoRow label="Area" value={`${playground.area_SqMeters} sq m`} />
-            {playground.facilities && (
-              <InfoRow label="Facilities" value={playground.facilities} />
+            <InfoRow
+              label="Area"
+              value={`${playground.metadata.area_SqMeters} sq m`}
+            />
+            {playground.metadata.facilities && (
+              <InfoRow
+                label="Facilities"
+                value={playground.metadata.facilities}
+              />
             )}
-            <InfoRow label="Has Shade" value={playground.hasShade} />
+            <InfoRow label="Has Shade" value={playground.metadata.hasShade} />
             <InfoRow
               label="Entrance"
-              value={entranceLabels[playground.entrance]}
+              value={entranceLabels[playground.metadata.entrance]}
             />
-            {playground.phone && (
-              <InfoRow label="Phone" value={playground.phone} />
+            {playground.metadata.phone && (
+              <InfoRow label="Phone" value={playground.metadata.phone} />
             )}
           </>
         );
@@ -107,17 +134,27 @@ const AssetDetailCard: React.FC<AssetDetailCardProps> = ({ asset }) => {
       case AssetType.Bin: {
         const bin = asset as Bin;
         const binTypeLabels = ["General", "Recycling", "Organic", "Hazardous"];
+        const binTypeValue =
+          typeof bin.metadata.binType === "string"
+            ? bin.metadata.binType
+            : binTypeLabels[bin.metadata.binType];
         return (
           <>
-            <InfoRow label="Capacity" value={`${bin.capacity_Liters}L`} />
-            <InfoRow label="Bin Type" value={binTypeLabels[bin.binType]} />
-            {bin.collectionDay && (
-              <InfoRow label="Collection Day" value={bin.collectionDay} />
+            <InfoRow
+              label="Capacity"
+              value={`${bin.metadata.capacity_Liters}L`}
+            />
+            <InfoRow label="Bin Type" value={binTypeValue} />
+            {bin.metadata.collectionDay && (
+              <InfoRow
+                label="Collection Day"
+                value={bin.metadata.collectionDay}
+              />
             )}
-            {bin.lastEmptied && (
+            {bin.metadata.lastEmptied && (
               <InfoRow
                 label="Last Emptied"
-                value={new Date(bin.lastEmptied).toLocaleDateString()}
+                value={new Date(bin.metadata.lastEmptied).toLocaleDateString()}
               />
             )}
           </>
@@ -128,13 +165,13 @@ const AssetDetailCard: React.FC<AssetDetailCardProps> = ({ asset }) => {
         const busStop = asset as BusStop;
         return (
           <>
-            {busStop.routesServed && (
-              <InfoRow label="Routes" value={busStop.routesServed} />
+            {busStop.metadata.routesServed && (
+              <InfoRow label="Routes" value={busStop.metadata.routesServed} />
             )}
-            <InfoRow label="Has Shelter" value={busStop.hasShelter} />
-            <InfoRow label="Has Bench" value={busStop.hasBench} />
-            {busStop.timetable && (
-              <InfoRow label="Timetable" value={busStop.timetable} />
+            <InfoRow label="Has Shelter" value={busStop.metadata.hasShelter} />
+            <InfoRow label="Has Bench" value={busStop.metadata.hasBench} />
+            {busStop.metadata.timetable && (
+              <InfoRow label="Timetable" value={busStop.metadata.timetable} />
             )}
           </>
         );
@@ -145,16 +182,28 @@ const AssetDetailCard: React.FC<AssetDetailCardProps> = ({ asset }) => {
         const entranceLabels = ["Free", "Reservation", "Paid"];
         return (
           <>
-            <InfoRow label="Area" value={`${park.area_SqMeters} sq m`} />
-            {park.facilities && (
-              <InfoRow label="Facilities" value={park.facilities} />
+            <InfoRow
+              label="Area"
+              value={`${park.metadata.area_SqMeters} sq m`}
+            />
+            {park.metadata.facilities && (
+              <InfoRow label="Facilities" value={park.metadata.facilities} />
             )}
-            {park.openingHours && (
-              <InfoRow label="Opening Hours" value={park.openingHours} />
+            {park.metadata.openingHours && (
+              <InfoRow
+                label="Opening Hours"
+                value={park.metadata.openingHours}
+              />
             )}
-            <InfoRow label="Entrance" value={entranceLabels[park.entrance]} />
-            <InfoRow label="Has Playground" value={park.hasPlayground} />
-            <InfoRow label="Has Parking" value={park.hasParking} />
+            <InfoRow
+              label="Entrance"
+              value={entranceLabels[park.metadata.entrance]}
+            />
+            <InfoRow
+              label="Has Playground"
+              value={park.metadata.hasPlayground}
+            />
+            <InfoRow label="Has Parking" value={park.metadata.hasParking} />
           </>
         );
       }
@@ -168,9 +217,9 @@ const AssetDetailCard: React.FC<AssetDetailCardProps> = ({ asset }) => {
     <View style={styles.card}>
       <View style={styles.header}>
         <AssetIcon
-          assetType={asset.assetType}
+          assetType={assetTypeNum}
           size={48}
-          color={ASSET_COLORS[asset.assetType]}
+          color={ASSET_COLORS[assetTypeNum]}
         />
         <View style={styles.headerInfo}>
           <Text style={styles.name}>{asset.assetName}</Text>

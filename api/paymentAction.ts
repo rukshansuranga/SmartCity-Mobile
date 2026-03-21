@@ -8,8 +8,7 @@ export interface CreatePaymentIntentRequest {
   amount: number; // Amount in cents (e.g., 10000 for LKR 100.00)
   currency: string; // e.g., "lkr" for Sri Lankan Rupee
   residentId: string;
-  arrearsIds: number[];
-  quarterlyTaxIds: string[]; // Format: "taxableUnitID-taxYear-quarter"
+  assessmentQuarterIds: string[]; // Format: "taxableUnitID-taxYear-quarter"
   description: string;
 }
 
@@ -26,10 +25,9 @@ export interface CreatePaymentIntentResponse {
  */
 export interface ConfirmPaymentRequest {
   paymentIntentId: string;
-  residentId: string;
-  arrearsIds: number[];
-  quarterlyTaxIds: string[];
-  total: number;
+  //residentId: string;
+  assessmentQuarterIds: number[];
+  //total: number;
 }
 
 /**
@@ -48,7 +46,7 @@ export interface ConfirmPaymentResponse {
  * @returns Payment intent response with client secret
  */
 export async function createPaymentIntent(
-  request: CreatePaymentIntentRequest
+  request: CreatePaymentIntentRequest,
 ): Promise<CreatePaymentIntentResponse> {
   return fetchWrapper.post("Payment/create-intent", request);
 }
@@ -59,7 +57,7 @@ export async function createPaymentIntent(
  * @returns Confirmation response with transaction details
  */
 export async function confirmPayment(
-  request: ConfirmPaymentRequest
+  request: ConfirmPaymentRequest,
 ): Promise<ConfirmPaymentResponse> {
   return fetchWrapper.post("Payment/confirm", request);
 }
@@ -74,7 +72,7 @@ export async function confirmPayment(
 export function formatQuarterlyTaxId(
   taxableUnitID: number,
   taxYear: number,
-  quarter: number
+  quarter: number,
 ): string {
   return `${taxableUnitID}-${taxYear}-${quarter}`;
 }
@@ -103,7 +101,7 @@ export function convertFromCents(cents: number): number {
  * @returns Array of payment history
  */
 export async function getPaymentHistory(
-  residentId: string
+  residentId: string,
 ): Promise<PaymentHistoryResponseDto[]> {
   return fetchWrapper.get(`Payment/history/${residentId}`);
 }

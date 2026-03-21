@@ -31,9 +31,36 @@ export enum ProjectStatus {
 }
 
 export enum ProjectType {
+  // Infrastructure
   Road = 0,
-  Building = 1,
-  Irrigation = 2,
+  Bridge = 1,
+  Culvert = 2,
+  StreetLighting = 3,
+
+  // Water & Sanitation
+  WaterSupply = 4,
+  Pipeline = 5,
+  Drainage = 6,
+  Sewerage = 7,
+  Irrigation = 8,
+  Reservoir = 9,
+  WaterTreatmentPlant = 10,
+
+  // Buildings & Facilities
+  Building = 11,
+  Park = 12,
+  RecreationArea = 13,
+  CommunityCenter = 14,
+  PublicLibrary = 15,
+  HealthCenter = 16,
+
+  // Waste Management
+  WasteManagement = 17,
+  Landfill = 18,
+  RecyclingCenter = 19,
+
+  // Other
+  Other = 20,
 }
 
 export enum NotificationStatus {

@@ -24,20 +24,25 @@ export interface ProposalFeed {
 
 export interface ProposalCard {
   proposalId: number;
-  title: string;
-  description: string;
-  estimatedCost: number;
+  residentId: string;
+  residentName?: string;
+  councilId: string;
   categoryId: number;
   categoryName: string;
   categoryCode?: string;
-  residentId: string;
-  residentName: string;
+  title: string;
+  description: string;
+  estimatedCost: number;
   status: ProposalStatusType;
   submittedAt: string;
-  upvotes: number;
-  downvotes: number;
-  commentCount: number;
-  userVote?: VoteType; // Current user's vote (if any)
+  reviewedAt?: string;
+  reviewedBy?: string;
+  reviewNotes?: string;
+  upvoteCount: number;
+  downvoteCount: number;
+  commentCount?: number;
+  userVoteType?: number; // 1 for upvote, -1 for downvote
+  userVoteComment?: string;
 }
 
 // Proposal Detail
