@@ -1,5 +1,6 @@
 import {
   getActiveBudget,
+  getBudgetItemProjects,
   getBudgetItemTransactions,
   getBudgetStatistics,
   getCategoryDetail,
@@ -80,7 +81,31 @@ export const useBudgetStore = create<BudgetState>((set, get) => ({
     try {
       const response = await getCategoryDetail(categoryId);
       if (response.isSuccess) {
-        set({ selectedCategory: response.data, isLoadingCategory: false });
+        const category = response.data;
+        // For each budget item, check if it has projects
+        const budgetItemsWithProjects = await Promise.all(
+          category.budgetItems.map(async (item) => {
+            try {
+              const projRes = await getBudgetItemProjects(item.budgetItemId);
+              return {
+                ...item,
+                hasProjects:
+                  projRes.isSuccess && projRes.data && projRes.data.length > 0,
+                projectCount:
+                  projRes.isSuccess && projRes.data ? projRes.data.length : 0,
+              };
+            } catch {
+              return { ...item, hasProjects: false, projectCount: 0 };
+            }
+          }),
+        );
+        set({
+          selectedCategory: {
+            ...category,
+            budgetItems: budgetItemsWithProjects,
+          },
+          isLoadingCategory: false,
+        });
       } else {
         set({ error: response.message, isLoadingCategory: false });
       }

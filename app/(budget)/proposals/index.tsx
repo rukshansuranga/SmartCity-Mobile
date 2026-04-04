@@ -66,7 +66,10 @@ export default function ProposalHubScreen() {
     const proposal = proposals?.proposals.find(
       (p) => p.proposalId === proposalId,
     );
-    if (proposal?.userVote === voteType) {
+
+    console.log("handleVote", proposalId, voteType, proposal?.userVoteName);
+
+    if (proposal?.userVoteName === voteType) {
       // Remove vote if clicking the same button
       await removeMyVote(proposalId);
     } else {

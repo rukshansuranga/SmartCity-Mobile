@@ -81,6 +81,7 @@ export interface BudgetItemSummary {
   endDate?: string;
   responsibleDepartment?: string;
   spendingProgress: number; // Calculated: (actualSpent / plannedAmount) * 100
+  hasProjects?: boolean; // Optional, added for UI logic
 }
 
 // Fiscal Year Summary (History View)

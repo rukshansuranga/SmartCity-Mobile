@@ -8,6 +8,15 @@ import {
   DraftBudgetOverview,
   FiscalYearSummary,
 } from "@/types/budget";
+import { BudgetItemProjectList } from "@/types/budgetItemProject";
+/**
+ * Get projects for a specific budget item
+ */
+export async function getBudgetItemProjects(
+  budgetItemId: number,
+): Promise<ApiResponse<BudgetItemProjectList>> {
+  return fetchWrapper.get(`budget/items/${budgetItemId}/projects`);
+}
 
 /**
  * Get active budget overview for transparency mode

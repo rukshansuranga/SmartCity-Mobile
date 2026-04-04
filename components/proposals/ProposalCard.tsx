@@ -22,10 +22,13 @@ export function ProposalCard({ proposal, onPress, onVote }: ProposalCardProps) {
         : undefined;
 
   const handleVote = (voteType: VoteType) => {
-    // If already voted same type, remove vote
+    // If already voted same type, we're toggling it off
+    // Otherwise, we're voting (either new vote or changing vote)
     if (userVote === voteType) {
-      onVote(voteType); // This will toggle/remove the vote
+      // Remove vote - parent should handle toggle logic
+      onVote(voteType);
     } else {
+      // Add or change vote
       onVote(voteType);
     }
   };

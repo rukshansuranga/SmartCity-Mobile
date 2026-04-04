@@ -56,7 +56,7 @@ export default function CategoryDetailScreen() {
               style={{ backgroundColor: BudgetColors.primary.green }}
             >
               <Text className="text-2xl font-bold text-white mb-2">
-                {selectedCategory.name}
+                {selectedCategory.name} - Category
               </Text>
               {selectedCategory.description && (
                 <Text className="text-white opacity-90 text-sm">
@@ -100,7 +100,7 @@ export default function CategoryDetailScreen() {
                     </Text>
                   </View>
                   <View className="items-end">
-                    <Text className="text-xs text-gray-500">Projects</Text>
+                    <Text className="text-xs text-gray-500">Budget Items</Text>
                     <Text className="text-lg font-semibold text-gray-800">
                       {selectedCategory.budgetItems.length}
                     </Text>
@@ -124,7 +124,12 @@ export default function CategoryDetailScreen() {
 
               {selectedCategory.budgetItems.length > 0 ? (
                 selectedCategory.budgetItems.map((item) => (
-                  <BudgetItemCard key={item.budgetItemId} item={item} />
+                  <BudgetItemCard
+                    key={item.budgetItemId}
+                    item={item}
+                    categoryId={selectedCategory.categoryId}
+                    hasProjects={item.hasProjects}
+                  />
                 ))
               ) : (
                 <View className="items-center py-8">

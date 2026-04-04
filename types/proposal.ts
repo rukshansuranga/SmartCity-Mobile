@@ -42,6 +42,7 @@ export interface ProposalCard {
   downvoteCount: number;
   commentCount?: number;
   userVoteType?: number; // 1 for upvote, -1 for downvote
+  userVoteName?: string;
   userVoteComment?: string;
 }
 

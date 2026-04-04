@@ -1,14 +1,23 @@
 import { BudgetItemSummary } from "@/types/budget";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { ProgressBar } from "./ProgressBar";
 import { StatusBadge } from "./StatusBadge";
 
+import { useRouter } from "expo-router";
+
 interface BudgetItemCardProps {
   item: BudgetItemSummary;
+  categoryId?: number | string;
+  hasProjects?: boolean;
 }
 
-export function BudgetItemCard({ item }: BudgetItemCardProps) {
+export function BudgetItemCard({
+  item,
+  categoryId,
+  hasProjects,
+}: BudgetItemCardProps) {
+  const router = useRouter();
   const formatDate = (dateString?: string) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -18,7 +27,19 @@ export function BudgetItemCard({ item }: BudgetItemCardProps) {
     });
   };
 
-  return (
+  const handlePress = () => {
+    if (hasProjects && categoryId) {
+      router.push({
+        pathname: "/(budget)/category/[categoryId]/item/[itemId]/projects",
+        params: {
+          categoryId: String(categoryId),
+          itemId: String(item.budgetItemId),
+        },
+      });
+    }
+  };
+
+  const CardContent = (
     <View className="bg-white rounded-xl p-4 mb-3 shadow-sm border border-gray-100">
       <View className="flex-row items-start justify-between mb-2">
         <View className="flex-1">
@@ -76,6 +97,22 @@ export function BudgetItemCard({ item }: BudgetItemCardProps) {
           showPercentage={true}
         />
       </View>
+
+      {/* Projects link/button */}
+      {hasProjects ? (
+        <View className="mt-3">
+          <Text className="text-blue-600 underline">View Projects</Text>
+        </View>
+      ) : null}
     </View>
   );
+
+  if (hasProjects && categoryId) {
+    return (
+      <Pressable onPress={handlePress} accessibilityRole="button">
+        {CardContent}
+      </Pressable>
+    );
+  }
+  return CardContent;
 }

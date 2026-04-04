@@ -6,8 +6,7 @@ import Toast from "react-native-toast-message";
 import { getValidAccessToken } from "./tokenManager";
 
 //const baseUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
-const baseUrl =
-  "https://190f-2402-d000-8100-a06-7832-3d1e-f928-f4e0.ngrok-free.app/api/";
+const baseUrl = "https://e1fd-112-134-144-199.ngrok-free.app/api/";
 
 async function get(url: string) {
   const requestOptions = {

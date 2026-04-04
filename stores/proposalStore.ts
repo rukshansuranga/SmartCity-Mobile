@@ -79,6 +79,7 @@ export const useProposalStore = create<ProposalState>((set, get) => ({
     try {
       const response = await getProposals(filters);
       if (response.isSuccess) {
+        console.log("Fetched proposals", response.data);
         set({ proposals: response.data, isLoadingProposals: false });
       } else {
         set({ error: response.message, isLoadingProposals: false });
@@ -153,7 +154,8 @@ export const useProposalStore = create<ProposalState>((set, get) => ({
                   ...p,
                   upvotes: response.data.upvotes,
                   downvotes: response.data.downvotes,
-                  userVote: voteType,
+                  userVoteType: "Upvote" === voteType ? 1 : -1,
+                  userVoteName: "Upvote" === voteType ? "Upvote" : "Downvote",
                 }
               : p,
           );
