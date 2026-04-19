@@ -25,6 +25,10 @@ export default function SelectCouncil() {
 
     try {
       // Fetch full council details from backend
+      console.log(
+        "[SelectCouncil] Fetching council details for:",
+        selectedValue,
+      );
       const response = await getCouncilByName(selectedValue);
 
       if (response.isSuccess && response.data) {

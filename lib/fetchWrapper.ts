@@ -6,7 +6,8 @@ import Toast from "react-native-toast-message";
 import { getValidAccessToken } from "./tokenManager";
 
 //const baseUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
-const baseUrl = "https://e1fd-112-134-144-199.ngrok-free.app/api/";
+const baseUrl =
+  "https://74fb-2402-d000-812c-5deb-5c94-6692-23cc-934d.ngrok-free.app/api/";
 
 async function get(url: string) {
   const requestOptions = {
@@ -210,6 +211,8 @@ async function getHeaders(): Promise<Headers> {
 
   console.log(
     "🔑 Selected Council:",
+    accessToken,
+    selectedCouncil,
     selectedCouncil?.value,
     selectedCouncil?.label,
   );

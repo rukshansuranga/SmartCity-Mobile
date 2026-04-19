@@ -74,14 +74,13 @@ const AssetDetailCard: React.FC<AssetDetailCardProps> = ({ asset }) => {
 
       case AssetType.Streetlight: {
         const light = asset as Streetlight;
-        const bulbTypeLabels = ["LED", "Halogen", "Sodium", "Fluorescent"];
-        const conditionLabels = ["Good", "Fair", "Poor", "Critical"];
+        // const bulbTypeLabels = ["LED", "Halogen", "Sodium", "Fluorescent"];
+        // const conditionLabels = ["Good", "Fair", "Poor", "Critical"];
+
+        console.log("bulb type:", light.metadata.bulbType); // Debug log to check metadata structure
         return (
           <>
-            <InfoRow
-              label="Bulb Type"
-              value={bulbTypeLabels[light.metadata.bulbType]}
-            />
+            <InfoRow label="Bulb Type" value={light.metadata.bulbType} />
             <InfoRow label="Wattage" value={`${light.metadata.wattage}W`} />
             <InfoRow
               label="Height"
@@ -89,7 +88,7 @@ const AssetDetailCard: React.FC<AssetDetailCardProps> = ({ asset }) => {
             />
             <InfoRow
               label="Pole Condition"
-              value={conditionLabels[light.metadata.poleCondition]}
+              value={light.metadata.poleCondition}
             />
             <InfoRow label="Solar Powered" value={light.metadata.solar} />
             {light.metadata.lastMaintenanceDate && (
@@ -120,10 +119,7 @@ const AssetDetailCard: React.FC<AssetDetailCardProps> = ({ asset }) => {
               />
             )}
             <InfoRow label="Has Shade" value={playground.metadata.hasShade} />
-            <InfoRow
-              label="Entrance"
-              value={entranceLabels[playground.metadata.entrance]}
-            />
+            <InfoRow label="Entrance" value={playground.metadata.entrance} />
             {playground.metadata.phone && (
               <InfoRow label="Phone" value={playground.metadata.phone} />
             )}

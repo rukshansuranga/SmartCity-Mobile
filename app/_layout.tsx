@@ -168,7 +168,7 @@ export default function RootLayout() {
       // Check if council is selected
       if (!selectedCouncil) {
         console.log("[RootLayout] No council selected, redirecting...");
-        router.replace("/selectCouncil" as any);
+        //router.replace("/selectCouncil" as any);
         return;
       }
 
@@ -248,10 +248,10 @@ export default function RootLayout() {
                 <Stack.Screen name="auth" options={{ headerShown: false }} />
               </Stack.Protected>{" "}
               <Stack.Protected guard={isSignedIn}>
-                <Stack.Screen
+                {/* <Stack.Screen
                   name="selectCouncil"
                   options={{ headerShown: false, title: "Select Council" }}
-                />
+                /> */}
                 <Stack.Screen name="home" options={{ title: "Home" }} />
                 <Stack.Screen
                   name="(notification)/NotificationList"

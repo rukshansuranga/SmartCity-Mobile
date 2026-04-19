@@ -31,7 +31,7 @@ export default function SignIn() {
       scopes: ["openid", "profile"],
       redirectUri: redirectUri,
     },
-    discovery
+    discovery,
   );
 
   const [registerRequest, registerResponse, promptRegisterAsync] =
@@ -45,7 +45,7 @@ export default function SignIn() {
           prompt: "create",
         },
       },
-      discovery
+      discovery,
     );
 
   useEffect(() => {
@@ -68,7 +68,7 @@ export default function SignIn() {
         const formBody = Object.entries(formData)
           .map(
             ([key, value]) =>
-              `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+              `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
           )
           .join("&");
 
@@ -82,7 +82,7 @@ export default function SignIn() {
               "Content-Type": "application/x-www-form-urlencoded",
             },
             body: formBody,
-          }
+          },
         );
 
         console.log("[DEBUG] tokenResponse.ok:", tokenResponse.ok);
@@ -98,7 +98,7 @@ export default function SignIn() {
                 Authorization: `Bearer ${payload.access_token}`,
                 Accept: "application/json",
               },
-            }
+            },
           );
 
           console.log("[DEBUG] userInfoResponse.ok:", userInfoResponse.ok);
@@ -134,7 +134,7 @@ export default function SignIn() {
             // Optionally show error to user
           } else if (!selectedCouncil) {
             console.log(
-              "[DEBUG] No council selected, navigating to selectCouncil"
+              "[DEBUG] No council selected, navigating to selectCouncil",
             );
             router.replace("/selectCouncil" as any);
           } else {
@@ -219,7 +219,7 @@ export default function SignIn() {
         const formBody = Object.entries(formData)
           .map(
             ([key, value]) =>
-              `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+              `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
           )
           .join("&");
 
@@ -232,7 +232,7 @@ export default function SignIn() {
               "Content-Type": "application/x-www-form-urlencoded",
             },
             body: formBody,
-          }
+          },
         );
 
         if (tokenResponse.ok) {
@@ -246,7 +246,7 @@ export default function SignIn() {
                 Authorization: `Bearer ${payload.access_token}`,
                 Accept: "application/json",
               },
-            }
+            },
           );
 
           const userInfo = await userInfoResponse.json();
@@ -254,7 +254,7 @@ export default function SignIn() {
 
           Alert.alert(
             "[DEBUG] Registration - userInfo",
-            `Welcome ${userInfo.given_name}! User ID: ${userInfo.sub}`
+            `Welcome ${userInfo.given_name}! User ID: ${userInfo.sub}`,
           );
 
           await registerResident({
@@ -273,7 +273,7 @@ export default function SignIn() {
           //add alert with userinfo
           Alert.alert(
             "Registration Successful",
-            `Welcome ${userInfo.given_name}! User ID: ${userInfo.sub}`
+            `Welcome ${userInfo.given_name}! User ID: ${userInfo.sub}`,
           );
 
           // Extract councils from userInfo and convert to Council type
@@ -302,7 +302,7 @@ export default function SignIn() {
             // Show error to user
           } else {
             console.log(
-              "[DEBUG] New registration, navigating to selectCouncil"
+              "[DEBUG] New registration, navigating to selectCouncil",
             );
             router.replace("/selectCouncil" as any);
           }
