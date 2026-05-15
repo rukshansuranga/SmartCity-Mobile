@@ -281,7 +281,11 @@ export default function MyImpactScreen() {
           </View>
 
           {myVotes?.length > 0 ? (
-            myVotes.slice(0, 10).map((vote) => (
+            myVotes.slice(0, 10).map((vote) => {
+              // Handle both numeric (1, -1) and string ("Upvote", "Downvote") vote types
+              const isUpvote = vote.voteType === "Upvote" || vote.voteType === 1 || (vote.voteType as any) === "1";
+              
+              return (
               <TouchableOpacity
                 key={vote.proposalVoteId}
                 onPress={() =>
@@ -294,20 +298,20 @@ export default function MyImpactScreen() {
                   className="w-10 h-10 rounded-full items-center justify-center mr-3"
                   style={{
                     backgroundColor:
-                      vote.voteType === "Upvote"
+                      isUpvote
                         ? BudgetColors.vote.upvote + "20"
                         : BudgetColors.vote.downvote + "20",
                   }}
                 >
                   <MaterialCommunityIcons
                     name={
-                      vote.voteType === "Upvote"
+                      isUpvote
                         ? "arrow-up-bold"
                         : "arrow-down-bold"
                     }
                     size={20}
                     color={
-                      vote.voteType === "Upvote"
+                      isUpvote
                         ? BudgetColors.vote.upvote
                         : BudgetColors.vote.downvote
                     }
@@ -335,7 +339,8 @@ export default function MyImpactScreen() {
                   color="#CBD5E1"
                 />
               </TouchableOpacity>
-            ))
+            );
+            })
           ) : (
             <View className="bg-white rounded-xl p-8 items-center">
               <MaterialCommunityIcons

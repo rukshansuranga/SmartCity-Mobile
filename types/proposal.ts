@@ -86,11 +86,10 @@ export interface VoteRequest {
 
 export interface VoteResponse {
   proposalVoteId: number;
-  proposalId: number;
-  voteType: VoteType;
-  upvotes: number;
-  downvotes: number;
-  netVotes: number; // upvotes - downvotes
+  voteType: number;
+  newUpvoteCount: number;
+  newDownvoteCount: number;
+  message: string;
 }
 
 // My Proposals (Screen C - My Impact)
@@ -115,7 +114,7 @@ export interface MyVoteHistory {
   proposalId: number;
   proposalTitle: string;
   categoryName: string;
-  voteType: VoteType;
+  voteType: VoteType | number; // Can be string ("Upvote"/"Downvote") or number (1/-1)
   votedAt: string;
   comment?: string;
 }

@@ -7,7 +7,7 @@ import { getValidAccessToken } from "./tokenManager";
 
 //const baseUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
 const baseUrl =
-  "https://74fb-2402-d000-812c-5deb-5c94-6692-23cc-934d.ngrok-free.app/api/";
+  "https://2e0c-2402-d000-812c-fa5c-ec39-56c1-c24b-f800.ngrok-free.app/api/";
 
 async function get(url: string) {
   const requestOptions = {

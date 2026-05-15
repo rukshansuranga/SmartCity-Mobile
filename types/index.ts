@@ -408,5 +408,58 @@ export interface UnpaidQuarterCartItem {
   paymentStatus: string;
 }
 
+// ==================== NEWS TYPES ====================
+
+export interface NewsItem {
+  id: number;
+  title: string;
+  summary?: string;
+  category: string; // Will match NewsCategory enum
+  priority: string; // Will match NewsPriority enum
+  coverImageUrl?: string;
+  status: string; // Will match NewsStatus enum
+  isRecurrent: boolean;
+  publishedDateTime?: string;
+  expiryDateTime?: string;
+  totalRecipients: number;
+  readCount: number;
+  createdAt: string;
+  isRead?: boolean; // Resident-specific field
+}
+
+export interface NewsDetail {
+  id: number;
+  title: string;
+  content: string;
+  summary?: string;
+  category: string;
+  priority: string;
+  coverImageUrl?: string;
+  mediaUrls?: string[];
+  targetRegions?: string[];
+  isRecurrent: boolean;
+  publishedDateTime?: string;
+  expiryDateTime?: string;
+  status: string;
+  createdAt: string;
+
+  // Resident-specific fields
+  isRead?: boolean;
+  readAt?: string;
+}
+
+export interface PagedResponse<T> {
+  items: T[];
+  pageIndex: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+}
+
+export interface DeviceTokenRequest {
+  deviceToken: string;
+  platform: "iOS" | "Android";
+}
+
 // Re-export infrastructure types for convenience
 export * from "./infrastructure";

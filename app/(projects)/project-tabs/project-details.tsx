@@ -50,10 +50,16 @@ export default function ProjectDetails() {
     switch (status) {
       case ProjectStatus.New:
         return "New";
+      case ProjectStatus.TenderCall:
+        return "Tender Call";
+      case ProjectStatus.TenderSelected:
+        return "Tender Selected";
       case ProjectStatus.InProgress:
         return "In Progress";
       case ProjectStatus.Completed:
         return "Completed";
+      case ProjectStatus.Approved:
+        return "Approved";
       case ProjectStatus.OnHold:
         return "On Hold";
       default:
@@ -65,10 +71,16 @@ export default function ProjectDetails() {
     switch (status) {
       case ProjectStatus.New:
         return "#c7f9cc";
+      case ProjectStatus.TenderCall:
+        return "#ffd166";
+      case ProjectStatus.TenderSelected:
+        return "#ffb703";
       case ProjectStatus.InProgress:
         return "#57cc99";
       case ProjectStatus.Completed:
         return "#80ed99";
+      case ProjectStatus.Approved:
+        return "#38b000";
       case ProjectStatus.OnHold:
         return "#ffd166";
       default:
@@ -195,7 +207,7 @@ export default function ProjectDetails() {
                 {Math.ceil(
                   (new Date(project.endDate).getTime() -
                     new Date(project.startDate).getTime()) /
-                    (1000 * 60 * 60 * 24)
+                    (1000 * 60 * 60 * 24),
                 )}{" "}
                 days
               </Text>

@@ -79,7 +79,6 @@ export const useProposalStore = create<ProposalState>((set, get) => ({
     try {
       const response = await getProposals(filters);
       if (response.isSuccess) {
-        console.log("Fetched proposals", response.data);
         set({ proposals: response.data, isLoadingProposals: false });
       } else {
         set({ error: response.message, isLoadingProposals: false });
@@ -152,10 +151,10 @@ export const useProposalStore = create<ProposalState>((set, get) => ({
             p.proposalId === proposalId
               ? {
                   ...p,
-                  upvotes: response.data.upvotes,
-                  downvotes: response.data.downvotes,
-                  userVoteType: "Upvote" === voteType ? 1 : -1,
-                  userVoteName: "Upvote" === voteType ? "Upvote" : "Downvote",
+                  upvoteCount: response.data.newUpvoteCount,
+                  downvoteCount: response.data.newDownvoteCount,
+                  userVoteType: voteType === "Upvote" ? 1 : -1,
+                  userVoteName: voteType,
                 }
               : p,
           );
@@ -187,9 +186,29 @@ export const useProposalStore = create<ProposalState>((set, get) => ({
         // Update the proposal in the list
         const proposals = get().proposals;
         if (proposals) {
-          const updatedProposals = proposals.proposals.map((p) =>
-            p.proposalId === proposalId ? { ...p, userVote: undefined } : p,
-          );
+          const updatedProposals = proposals.proposals.map((p) => {
+            if (p.proposalId === proposalId) {
+              // Decrement the appropriate count based on previous vote
+              const updatedProposal = { ...p };
+              if (p.userVoteType === 1) {
+                updatedProposal.upvoteCount = Math.max(
+                  0,
+                  (p.upvoteCount || 0) - 1,
+                );
+              } else if (p.userVoteType === -1) {
+                updatedProposal.downvoteCount = Math.max(
+                  0,
+                  (p.downvoteCount || 0) - 1,
+                );
+              }
+              // Clear user vote
+              updatedProposal.userVoteType = undefined;
+              updatedProposal.userVoteName = undefined;
+              updatedProposal.userVoteComment = undefined;
+              return updatedProposal;
+            }
+            return p;
+          });
           set({
             proposals: {
               ...proposals,

@@ -1,7 +1,11 @@
 import { ROUTES } from "@/constants/routes";
+import { useAuthStore } from "@/stores/authStore";
+import { useNewsStore } from "@/stores/newsStore";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useEffect } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Badge } from "react-native-paper";
 
 const menuItems = [
   {
@@ -46,6 +50,15 @@ const menuItems = [
 
 export default function Index() {
   const router = useRouter();
+  const { userInfo } = useAuthStore();
+  const { unreadCount, loadUnreadCount } = useNewsStore();
+
+  // Load unread news count on mount
+  useEffect(() => {
+    if (userInfo?.sub) {
+      loadUnreadCount(userInfo.sub);
+    }
+  }, [userInfo?.sub]);
 
   return (
     <ScrollView className="flex-1 bg-[#c7f9cc]">
@@ -60,11 +73,22 @@ export default function Index() {
               activeOpacity={0.8}
             >
               <View className="items-center justify-center py-8 px-4">
-                <MaterialCommunityIcons
-                  name={icon as any}
-                  size={48}
-                  color="#ffffff"
-                />
+                <View className="relative">
+                  <MaterialCommunityIcons
+                    name={icon as any}
+                    size={48}
+                    color="#ffffff"
+                  />
+                  {/* Show unread badge on News icon */}
+                  {label === "News" && unreadCount > 0 && (
+                    <Badge
+                      className="absolute -top-2 -right-2 bg-red-500"
+                      size={20}
+                    >
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </Badge>
+                  )}
+                </View>
                 <Text className="font-bold text-lg text-white mt-3 text-center">
                   {label}
                 </Text>

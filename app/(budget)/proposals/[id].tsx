@@ -45,13 +45,6 @@ export default function ProposalDetailScreen() {
     );
   }
 
-  console.log(
-    "votes",
-    proposal.upvoteCount,
-    proposal.downvoteCount,
-    proposal.commentCount,
-  );
-
   return (
     <>
       <Stack.Screen

@@ -1,4 +1,5 @@
 import { registerResident } from "@/api/residentAction";
+import { PushNotificationService } from "@/lib/pushNotificationService";
 import { useAuthStore } from "@/stores/authStore";
 import { Council } from "@/types";
 import {
@@ -127,6 +128,17 @@ export default function SignIn() {
           });
 
           console.log("[DEBUG] logIn called successfully");
+
+          // Register device token for push notifications (non-blocking)
+          PushNotificationService.registerForPushNotifications(userInfo.sub)
+            .then((token) => {
+              if (token) {
+                console.log("[DEBUG] Device token registered successfully");
+              }
+            })
+            .catch((error) => {
+              console.error("[DEBUG] Device token registration failed:", error);
+            });
 
           // Navigate based on council selection
           if (councils.length === 0) {
@@ -295,6 +307,20 @@ export default function SignIn() {
             expiresIn: payload.expires_in,
             userInfo: userInfo,
           });
+
+          // Register device token for push notifications (non-blocking)
+          PushNotificationService.registerForPushNotifications(userInfo.sub)
+            .then((token) => {
+              if (token) {
+                console.log("[DEBUG] Device token registered after signup");
+              }
+            })
+            .catch((error) => {
+              console.error(
+                "[DEBUG] Device token registration failed after signup:",
+                error,
+              );
+            });
 
           // For new registrations, always navigate to council selection
           if (councils.length === 0) {

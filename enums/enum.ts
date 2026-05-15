@@ -25,9 +25,12 @@ export enum WorkpackageStatus {
 
 export enum ProjectStatus {
   New = 0,
-  InProgress = 1,
-  Completed = 2,
-  OnHold = 3,
+  TenderCall = 1,
+  TenderSelected = 2,
+  InProgress = 3,
+  Completed = 4,
+  Approved = 5,
+  OnHold = 6,
 }
 
 export enum ProjectType {
@@ -92,4 +95,27 @@ export enum ProjectProgressApprovedStatus {
   Pending,
   Approved,
   Rejected,
+}
+
+export enum NewsCategory {
+  GeneralAnnouncement = "GeneralAnnouncement",
+  EmergencyAlert = "EmergencyAlert",
+  Event = "Event",
+  InfrastructureUpdate = "InfrastructureUpdate",
+  ServiceDisruption = "ServiceDisruption",
+  CommunityNews = "CommunityNews",
+}
+
+export enum NewsPriority {
+  Low = "Low",
+  Medium = "Medium",
+  High = "High",
+  Critical = "Critical",
+}
+
+export enum NewsStatus {
+  Scheduled = "Scheduled",
+  Published = "Published",
+  Expired = "Expired",
+  Cancelled = "Cancelled",
 }

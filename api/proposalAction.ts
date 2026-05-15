@@ -61,8 +61,6 @@ export async function voteOnProposal(
   proposalId: number,
   vote: VoteRequest,
 ): Promise<ApiResponse<VoteResponse>> {
-  console.log("vote....2", proposalId, vote);
-
   // Convert VoteType string to integer for backend
   // 1: Support/Upvote, -1: Oppose/Downvote
   const votePayload = {

@@ -9,10 +9,13 @@ import { Link, SplashScreen, Stack, useRouter } from "expo-router";
 import { useAuthStore } from "@/stores/authStore";
 // import { makeRedirectUri, useAuthRequest, useAutoDiscovery } from "expo-auth-session";
 import { getUnreadNotificationCount } from "@/api/notificationAction";
+import { PushNotificationService } from "@/lib/pushNotificationService";
 import { validateAndRefreshToken } from "@/lib/tokenManager";
 import { appStore } from "@/stores/appStore";
+import { useNewsStore } from "@/stores/newsStore";
 import { StripeProvider } from "@stripe/stripe-react-native";
-import { useEffect } from "react";
+import * as Notifications from "expo-notifications";
+import { useEffect, useRef } from "react";
 import { Image, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Badge, IconButton } from "react-native-paper";
@@ -46,6 +49,8 @@ function MinimalHeader({
       "(projects)": "Projects",
       "(tax)/index": "Tax",
       "(tax)": "Tax",
+      "(news)/index": "News & Announcements",
+      "(news)": "News & Announcements",
       editUser: "Edit User",
       "(notification)/NotificationList": "Notifications",
     };
@@ -132,6 +137,11 @@ export default function RootLayout() {
   console.log("isSignedIn in RootLayout:", isSignedIn);
 
   const { updateNotificationCount, unreadNotificationCount } = appStore();
+  const { loadUnreadCount: loadNewsUnreadCount } = useNewsStore();
+
+  // Refs for notification listeners
+  const notificationListener = useRef<Notifications.Subscription>();
+  const responseListener = useRef<Notifications.Subscription>();
 
   // Auth logic is handled in auth.tsx
 
@@ -181,6 +191,67 @@ export default function RootLayout() {
     initializeApp();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [_hasHydrated, isSignedIn, accessToken, selectedCouncil]);
+
+  // Setup push notification listeners
+  useEffect(() => {
+    if (!isSignedIn || !userInfo?.sub) return;
+
+    console.log("[RootLayout] Setting up push notification listeners");
+
+    // Listen for notifications received while app is in foreground
+    notificationListener.current =
+      PushNotificationService.addNotificationReceivedListener(
+        (notification) => {
+          console.log("📬 Notification received:", notification);
+          // Refresh unread counts
+          if (userInfo?.sub) {
+            fetchUnreadNotificationCount();
+            loadNewsUnreadCount(userInfo.sub);
+          }
+        },
+      );
+
+    // Listen for notification tap (user taps notification)
+    responseListener.current =
+      PushNotificationService.addNotificationResponseReceivedListener(
+        (response) => {
+          const newsId = response.notification.request.content.data?.newsId;
+          console.log("🔔 Notification tapped, newsId:", newsId);
+
+          if (newsId) {
+            // Navigate to news detail
+            router.push(`/(news)/newsDetail?newsId=${newsId}` as any);
+          }
+        },
+      );
+
+    // Handle cold start (app opened from notification)
+    PushNotificationService.getLastNotificationResponse().then((response) => {
+      if (response) {
+        const newsId = response.notification.request.content.data?.newsId;
+        console.log("❄️ Cold start with newsId:", newsId);
+
+        if (newsId) {
+          // Delay navigation to ensure app is ready
+          setTimeout(() => {
+            router.push(`/(news)/newsDetail?newsId=${newsId}` as any);
+          }, 1000);
+        }
+      }
+    });
+
+    // Cleanup
+    return () => {
+      if (notificationListener.current) {
+        Notifications.removeNotificationSubscription(
+          notificationListener.current,
+        );
+      }
+      if (responseListener.current) {
+        Notifications.removeNotificationSubscription(responseListener.current);
+      }
+    };
+  }, [isSignedIn, userInfo?.sub]);
 
   // No useAuthRequest or response handling here
 
@@ -256,6 +327,10 @@ export default function RootLayout() {
                 <Stack.Screen
                   name="(notification)/NotificationList"
                   options={{ headerShown: true, title: "Notifications" }}
+                />
+                <Stack.Screen
+                  name="(news)"
+                  options={{ title: "News & Announcements" }}
                 />
                 <Stack.Screen
                   name="(complains)"

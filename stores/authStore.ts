@@ -1,3 +1,4 @@
+import { PushNotificationService } from "@/lib/pushNotificationService";
 import { Council, KeycloakUserInfo } from "@/types";
 import { deleteItemAsync, getItemAsync, setItemAsync } from "expo-secure-store";
 import { create } from "zustand";
@@ -71,6 +72,20 @@ export const useAuthStore = create(
 
       logOut: async () => {
         console.log("Logging out...");
+
+        // Unregister device token before logging out
+        const currentUserInfo = get().userInfo;
+        if (currentUserInfo?.sub) {
+          try {
+            await PushNotificationService.unregisterPushNotifications(
+              currentUserInfo.sub,
+            );
+            console.log("Device token unregistered successfully");
+          } catch (error) {
+            console.error("Failed to unregister device token:", error);
+          }
+        }
+
         await deleteItemAsync("auth-store");
         set((state) => ({
           ...state,
@@ -140,6 +155,6 @@ export const useAuthStore = create(
       onRehydrateStorage: (state) => {
         return () => state.setHasHydrated(true);
       },
-    }
-  )
+    },
+  ),
 );
