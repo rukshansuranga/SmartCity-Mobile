@@ -52,7 +52,7 @@ export default function NewsFeedScreen() {
     router.push(`/(news)/newsDetail?newsId=${newsId}` as any);
   };
 
-  if (isLoading && newsList.length === 0) {
+  if (isLoading && (!newsList || newsList.length === 0)) {
     return (
       <View className="flex-1 justify-center items-center bg-gray-50">
         <ActivityIndicator size="large" color="#38a3a5" />
@@ -61,7 +61,7 @@ export default function NewsFeedScreen() {
     );
   }
 
-  if (error && newsList.length === 0) {
+  if (error && (!newsList || newsList.length === 0)) {
     return (
       <View className="flex-1 justify-center items-center bg-gray-50 px-6">
         <Text className="text-red-500 text-lg font-semibold mb-2">
@@ -72,7 +72,7 @@ export default function NewsFeedScreen() {
     );
   }
 
-  if (newsList.length === 0) {
+  if (!newsList || newsList.length === 0) {
     return (
       <View className="flex-1 justify-center items-center bg-gray-50 px-6">
         <Text className="text-6xl mb-4">📰</Text>
@@ -87,7 +87,7 @@ export default function NewsFeedScreen() {
   }
 
   const renderFooter = () => {
-    if (!isLoading || newsList.length === 0) return null;
+    if (!isLoading || !newsList || newsList.length === 0) return null;
     return (
       <View className="py-4">
         <ActivityIndicator color="#38a3a5" />
@@ -98,7 +98,7 @@ export default function NewsFeedScreen() {
   return (
     <View className="flex-1 bg-gray-50">
       <FlatList
-        data={newsList}
+        data={newsList || []}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }: { item: NewsItem }) => (
           <NewsCard news={item} onPress={() => handleNewsPress(item.id)} />

@@ -97,20 +97,39 @@ export default function Index() {
           ))}
         </View>
 
-        {/* Debug Button - Only show in development */}
+        {/* Debug Buttons - Only show in development */}
         {__DEV__ && (
-          <TouchableOpacity
-            onPress={() => router.push("/debug")}
-            className="w-full rounded-2xl shadow-lg overflow-hidden mt-2 bg-gray-800"
-            activeOpacity={0.8}
-          >
-            <View className="flex-row items-center justify-center py-4 px-4 gap-2">
-              <MaterialCommunityIcons name="bug" size={24} color="#fbbf24" />
-              <Text className="font-bold text-lg text-yellow-400">
-                Debug Auth Store
-              </Text>
-            </View>
-          </TouchableOpacity>
+          <View className="space-y-2">
+            <TouchableOpacity
+              onPress={() => router.push("/debug")}
+              className="w-full rounded-2xl shadow-lg overflow-hidden mt-2 bg-gray-800"
+              activeOpacity={0.8}
+            >
+              <View className="flex-row items-center justify-center py-4 px-4 gap-2">
+                <MaterialCommunityIcons name="bug" size={24} color="#fbbf24" />
+                <Text className="font-bold text-lg text-yellow-400">
+                  Debug Auth Store
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => router.push("/testPushNotification")}
+              className="w-full rounded-2xl shadow-lg overflow-hidden bg-blue-600"
+              activeOpacity={0.8}
+            >
+              <View className="flex-row items-center justify-center py-4 px-4 gap-2">
+                <MaterialCommunityIcons
+                  name="bell-ring"
+                  size={24}
+                  color="#ffffff"
+                />
+                <Text className="font-bold text-lg text-white">
+                  Test Push Notifications
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
     </ScrollView>

@@ -5,9 +5,10 @@ import { ApiResponse } from "@/types";
 import Toast from "react-native-toast-message";
 import { getValidAccessToken } from "./tokenManager";
 
-//const baseUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
-const baseUrl =
-  "https://2e0c-2402-d000-812c-fa5c-ec39-56c1-c24b-f800.ngrok-free.app/api/";
+const baseUrl = process.env.EXPO_PUBLIC_BACKEND_URL
+  ? `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/`
+  : "https://a526-2402-d000-812c-5f1c-388b-7708-2474-6e84.ngrok-free.app/api/";
+console.log("[FetchWrapper] Using baseUrl:", baseUrl);
 
 async function get(url: string) {
   const requestOptions = {
@@ -43,12 +44,15 @@ async function patch(url: string, body: unknown) {
 }
 
 async function post(url: string, body: unknown) {
+  console.log("🟢 POST Request:", baseUrl + url);
+  console.log("🟢 POST Body:", JSON.stringify(body, null, 2));
   const requestOptions = {
     method: "POST",
     headers: await getHeaders(),
     body: JSON.stringify(body),
   };
   const response = await fetch(baseUrl + url, requestOptions);
+  console.log("🟢 POST Response Status:", response.status);
   return handleResponse(response);
 }
 
@@ -209,13 +213,13 @@ async function getHeaders(): Promise<Headers> {
   const accessToken = await getValidAccessToken();
   const { selectedCouncil } = useAuthStore.getState();
 
-  console.log(
-    "🔑 Selected Council:",
-    accessToken,
-    selectedCouncil,
-    selectedCouncil?.value,
-    selectedCouncil?.label,
-  );
+  // console.log(
+  //   "🔑 Selected Council:",
+  //   accessToken,
+  //   selectedCouncil,
+  //   selectedCouncil?.value,
+  //   selectedCouncil?.label,
+  // );
 
   const headers = new Headers();
   headers.set("Content-type", "application/json");
@@ -278,6 +282,33 @@ function getServerUrl() {
   return baseUrl;
 }
 
+// Get backend base URL without /api/ suffix
+function getBackendBaseUrl() {
+  const backend = process.env.EXPO_PUBLIC_BACKEND_URL
+    ? process.env.EXPO_PUBLIC_BACKEND_URL
+    : "https://75be-2402-d000-812c-14b4-9c24-93ef-b121-d0e4.ngrok-free.app";
+  return backend;
+}
+
+// Convert relative URL to full URL
+function getFullUrl(relativeUrl: string | null | undefined): string {
+  if (!relativeUrl) return "";
+
+  // If already a full URL, return as-is
+  if (
+    relativeUrl.startsWith("http://") ||
+    relativeUrl.startsWith("https://") ||
+    relativeUrl.startsWith("file://")
+  ) {
+    return relativeUrl;
+  }
+
+  // Remove leading slash if present
+  const path = relativeUrl.startsWith("/") ? relativeUrl : `/${relativeUrl}`;
+
+  return `${getBackendBaseUrl()}${path}`;
+}
+
 export const fetchWrapper = {
   get,
   post,
@@ -290,4 +321,6 @@ export const fetchWrapper = {
   objectToFormData,
   getFile,
   getServerUrl,
+  getBackendBaseUrl,
+  getFullUrl,
 };

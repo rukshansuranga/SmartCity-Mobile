@@ -6,16 +6,14 @@ export enum ComplainStatus {
 }
 export enum EntityType {
   Complain = 0,
-  LightpostComplain = 1,
+  InfrastructureComplain = 1,
   ProjectComplain = 2,
   GeneralComplain = 3,
-  GarbageComplain = 4,
-  Project = 5,
-  Ticket = 6,
-  ProjectTicket = 7,
-  InternalTicket = 8,
-  ComplainTicket = 9,
-  InfrastructureComplain = 10,
+  Project = 4,
+  Ticket = 5,
+  ProjectTicket = 6,
+  InternalTicket = 7,
+  ComplainTicket = 8,
 }
 export enum WorkpackageStatus {
   New = 0,

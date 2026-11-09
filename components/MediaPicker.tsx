@@ -7,7 +7,10 @@ import * as ImagePicker from "expo-image-picker";
 import React, { useState } from "react";
 import {
   Alert,
+  Dimensions,
   FlatList,
+  Image,
+  Modal,
   ScrollView,
   Text,
   TextInput,
@@ -87,9 +90,18 @@ const MediaPicker: React.FC<Props> = ({
   maxAttachments = 5,
 }) => {
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [selectedPreviewIndex, setSelectedPreviewIndex] = useState(0);
 
   // Safety check: ensure attachments is always an array
   const safeAttachments = attachments || [];
+
+  const { width, height } = Dimensions.get("window");
+
+  // Get non-video, non-audio attachments for preview
+  const previewableAttachments = safeAttachments.filter(
+    (att) => att.attachmentType !== "Video" && att.attachmentType !== "Audio",
+  );
 
   // Capture voice (audio)
   const captureVoice = async () => {
@@ -381,10 +393,33 @@ const MediaPicker: React.FC<Props> = ({
     onChange(updated);
   };
 
-  function getUri(item) {
+  function getUri(item: AttachmentUpload) {
     console.log("Getting URI for item:", item.sourceUrl, item.file.uri);
     return item.attachmentId ? item.sourceUrl : item.file.uri;
   }
+
+  // Open preview modal
+  const openPreview = (index: number) => {
+    setSelectedPreviewIndex(index);
+    setPreviewVisible(true);
+  };
+
+  // Close preview modal
+  const closePreview = () => {
+    setPreviewVisible(false);
+  };
+
+  // Navigate between images in preview
+  const navigatePreview = (direction: "next" | "prev") => {
+    if (
+      direction === "next" &&
+      selectedPreviewIndex < previewableAttachments.length - 1
+    ) {
+      setSelectedPreviewIndex(selectedPreviewIndex + 1);
+    } else if (direction === "prev" && selectedPreviewIndex > 0) {
+      setSelectedPreviewIndex(selectedPreviewIndex - 1);
+    }
+  };
 
   return (
     <View className="my-2">
@@ -468,58 +503,67 @@ const MediaPicker: React.FC<Props> = ({
 
       {/* Images & Files List (exclude videos and audio) */}
       <FlatList
-        data={safeAttachments.filter(
-          (att) =>
-            att.attachmentType !== "Video" && att.attachmentType !== "Audio",
-        )}
+        data={previewableAttachments}
         keyExtractor={(_, idx) => idx.toString()}
-        renderItem={({ item, index }) => (
-          <View className="mb-2 mt-1 flex-row items-center relative mr-2 bg-[#c7f9cc] border border-[#57cc99] rounded-lg p-2">
-            <AttachmentThumbnail item={item} />
-            <View className="flex-1 ml-2 min-w-[100px]">
-              <Text
-                className="w-20 text-center text-xs mt-1 mb-1 text-[#22577a] font-bold"
-                numberOfLines={1}
+        renderItem={({ item, index }) => {
+          // Find the actual index in the original attachments array
+          const actualIndex = safeAttachments.indexOf(item);
+
+          return (
+            <View className="mb-2 mt-1 flex-row items-center relative mr-2 bg-[#c7f9cc] border border-[#57cc99] rounded-lg p-2">
+              <TouchableOpacity
+                onPress={() => openPreview(index)}
+                activeOpacity={0.7}
               >
-                {item.file?.name || "File"}
-              </Text>
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <TextInput
-                  className="w-full border border-[#57cc99] rounded bg-[#f6fff8] px-1 text-xs mb-1 min-h-[24px] max-h-[80px] text-[#22577a]"
-                  value={item.description || ""}
-                  onChangeText={(text) =>
-                    updateAttachmentDescription(index, text)
+                <AttachmentThumbnail item={item} />
+              </TouchableOpacity>
+              <View className="flex-1 ml-2 min-w-[100px]">
+                <Text
+                  className="w-20 text-center text-xs mt-1 mb-1 text-[#22577a] font-bold"
+                  numberOfLines={1}
+                >
+                  {item.file?.name || "File"}
+                </Text>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <TextInput
+                    className="w-full border border-[#57cc99] rounded bg-[#f6fff8] px-1 text-xs mb-1 min-h-[24px] max-h-[80px] text-[#22577a]"
+                    value={item.description || ""}
+                    onChangeText={(text) =>
+                      updateAttachmentDescription(actualIndex, text)
+                    }
+                    placeholder="Description"
+                    placeholderTextColor="#38a3a5"
+                    multiline
+                    textAlignVertical="top"
+                    numberOfLines={2}
+                    style={{ flex: 1 }}
+                  />
+                </View>
+              </View>
+              <View
+                style={{
+                  position: "absolute",
+                  top: 2,
+                  right: 2,
+                  flexDirection: "row",
+                  alignItems: "center",
+                }}
+              >
+                <View className="flex-1 flex-row"></View>
+
+                <TouchableOpacity
+                  className="bg-[#f95d6a] rounded-full p-1 "
+                  onPress={() =>
+                    removeAttachment(actualIndex, item?.attachmentId)
                   }
-                  placeholder="Description"
-                  placeholderTextColor="#38a3a5"
-                  multiline
-                  textAlignVertical="top"
-                  numberOfLines={2}
-                  style={{ flex: 1 }}
-                />
+                  accessibilityLabel="Remove attachment"
+                >
+                  <MaterialIcons name="delete" size={15} color="#fff" />
+                </TouchableOpacity>
               </View>
             </View>
-            <View
-              style={{
-                position: "absolute",
-                top: 2,
-                right: 2,
-                flexDirection: "row",
-                alignItems: "center",
-              }}
-            >
-              <View className="flex-1 flex-row"></View>
-
-              <TouchableOpacity
-                className="bg-[#f95d6a] rounded-full p-1 "
-                onPress={() => removeAttachment(index, item?.attachmentId)}
-                accessibilityLabel="Remove attachment"
-              >
-                <MaterialIcons name="delete" size={15} color="#fff" />
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
+          );
+        }}
       />
 
       {/* Voice Attachments Row */}
@@ -542,7 +586,7 @@ const MediaPicker: React.FC<Props> = ({
                     onPress={async () => {
                       try {
                         const { sound } = await Audio.Sound.createAsync({
-                          uri: item.file.uri,
+                          uri: getUri(item) || item.file.uri,
                         });
                         await sound.playAsync();
                       } catch {
@@ -594,7 +638,7 @@ const MediaPicker: React.FC<Props> = ({
             keyExtractor={(_, idx) => `video-${idx}`}
             renderItem={({ item, index }) => (
               <VideoItem
-                uri={getUri(item)}
+                uri={getUri(item) || ""}
                 fileName={item.file?.name || "Video"}
                 onRemove={() => removeVideo(index, item?.attachmentId)}
               />
@@ -604,6 +648,144 @@ const MediaPicker: React.FC<Props> = ({
           />
         </View>
       )}
+
+      {/* Preview Modal */}
+      <Modal
+        visible={previewVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={closePreview}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.95)",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          {/* Close button */}
+          <TouchableOpacity
+            onPress={closePreview}
+            style={{
+              position: "absolute",
+              top: 50,
+              right: 20,
+              zIndex: 10,
+              backgroundColor: "rgba(255,255,255,0.2)",
+              borderRadius: 20,
+              padding: 8,
+            }}
+          >
+            <MaterialIcons name="close" size={30} color="#fff" />
+          </TouchableOpacity>
+
+          {/* Previous button */}
+          {selectedPreviewIndex > 0 && (
+            <TouchableOpacity
+              onPress={() => navigatePreview("prev")}
+              style={{
+                position: "absolute",
+                left: 20,
+                zIndex: 10,
+                backgroundColor: "rgba(255,255,255,0.2)",
+                borderRadius: 20,
+                padding: 8,
+              }}
+            >
+              <MaterialIcons name="chevron-left" size={40} color="#fff" />
+            </TouchableOpacity>
+          )}
+
+          {/* Next button */}
+          {selectedPreviewIndex < previewableAttachments.length - 1 && (
+            <TouchableOpacity
+              onPress={() => navigatePreview("next")}
+              style={{
+                position: "absolute",
+                right: 20,
+                zIndex: 10,
+                backgroundColor: "rgba(255,255,255,0.2)",
+                borderRadius: 20,
+                padding: 8,
+              }}
+            >
+              <MaterialIcons name="chevron-right" size={40} color="#fff" />
+            </TouchableOpacity>
+          )}
+
+          {/* Preview Content */}
+          {previewableAttachments[selectedPreviewIndex] && (
+            <View style={{ width: "100%", alignItems: "center" }}>
+              {previewableAttachments[
+                selectedPreviewIndex
+              ].file?.type?.startsWith("image") ? (
+                <Image
+                  source={{
+                    uri: getUri(previewableAttachments[selectedPreviewIndex]),
+                  }}
+                  style={{
+                    width: width,
+                    height: height * 0.7,
+                  }}
+                  resizeMode="contain"
+                />
+              ) : (
+                <View
+                  style={{
+                    width: width * 0.8,
+                    height: height * 0.5,
+                    backgroundColor: "#374151",
+                    borderRadius: 12,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: 20,
+                  }}
+                >
+                  <MaterialIcons
+                    name="insert-drive-file"
+                    size={80}
+                    color="#fff"
+                  />
+                  <Text
+                    style={{
+                      color: "#fff",
+                      fontSize: 16,
+                      marginTop: 16,
+                      textAlign: "center",
+                    }}
+                  >
+                    {previewableAttachments[selectedPreviewIndex].file?.name ||
+                      "File"}
+                  </Text>
+                  <Text
+                    style={{ color: "#9CA3AF", fontSize: 14, marginTop: 8 }}
+                  >
+                    Preview not available
+                  </Text>
+                </View>
+              )}
+              {/* File name */}
+              <Text
+                style={{
+                  color: "#fff",
+                  fontSize: 16,
+                  marginTop: 20,
+                  textAlign: "center",
+                  paddingHorizontal: 20,
+                }}
+              >
+                {previewableAttachments[selectedPreviewIndex].file?.name ||
+                  "File"}
+              </Text>
+              {/* Counter */}
+              <Text style={{ color: "#9CA3AF", fontSize: 14, marginTop: 8 }}>
+                {selectedPreviewIndex + 1} / {previewableAttachments.length}
+              </Text>
+            </View>
+          )}
+        </View>
+      </Modal>
     </View>
   );
 };

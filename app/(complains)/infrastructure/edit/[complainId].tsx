@@ -19,6 +19,7 @@ import {
   COMPLAINT_TEMPLATES,
 } from "@/config/assetConfig";
 import { ComplainStatus, EntityType } from "@/enums/enum";
+import { fetchWrapper } from "@/lib/fetchWrapper";
 import { useAuthStore } from "@/stores/authStore";
 import { Attachment, AttachmentUpload } from "@/types";
 import {
@@ -166,7 +167,13 @@ export default function EditInfrastructureComplaint() {
           complainId,
         );
         if (attachmentsResult.isSuccess && attachmentsResult.data) {
-          setExistingAttachments(attachmentsResult.data);
+          // Convert relative URLs to full URLs
+          const attachmentsWithFullUrls = attachmentsResult.data.map((a) => ({
+            ...a,
+            thumbnailUrl: fetchWrapper.getFullUrl(a.thumbnailUrl),
+            sourceUrl: fetchWrapper.getFullUrl(a.sourceUrl),
+          }));
+          setExistingAttachments(attachmentsWithFullUrls);
         }
 
         // Load existing complaints for this asset
@@ -475,7 +482,16 @@ export default function EditInfrastructureComplaint() {
                         attachmentsResult.isSuccess &&
                         attachmentsResult.data
                       ) {
-                        setExistingAttachments(attachmentsResult.data);
+                        // Convert relative URLs to full URLs
+                        const attachmentsWithFullUrls =
+                          attachmentsResult.data.map((a) => ({
+                            ...a,
+                            thumbnailUrl: fetchWrapper.getFullUrl(
+                              a.thumbnailUrl,
+                            ),
+                            sourceUrl: fetchWrapper.getFullUrl(a.sourceUrl),
+                          }));
+                        setExistingAttachments(attachmentsWithFullUrls);
                       }
                     }}
                   />

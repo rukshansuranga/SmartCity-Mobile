@@ -28,16 +28,18 @@ const AttachmentThumbnail: React.FC<Props> = ({ item, width = 60 }) => {
     return () => {
       isMounted = false;
     };
-  }, [item.attachmentId, item.file, width]);
+  }, [item.attachmentId, item.file, item.thumbnailUrl, width]);
 
   console.log("Rendering AttachmentThumbnail with thumbUri:", thumbUri);
+  console.log("Item file type:", item.file?.type);
+  console.log("Item:", JSON.stringify(item, null, 2));
 
-  const imageUrl = "https://reactnative.dev/img/tiny_logo.png"; // Example URI
-
-  if (thumbUri) {
+  // Handle images (both with thumbnailUrl and file.uri)
+  if (thumbUri || (item.file && item.file.type?.startsWith("image"))) {
+    const imageUri = thumbUri || item.file?.uri;
     return (
       <Image
-        source={{ uri: thumbUri || imageUrl }}
+        source={{ uri: imageUri }}
         crossOrigin="anonymous"
         style={{
           width,
@@ -45,9 +47,12 @@ const AttachmentThumbnail: React.FC<Props> = ({ item, width = 60 }) => {
           borderRadius: 8,
           borderWidth: 2,
           borderColor: "#38a3a5",
-          backgroundColor: "#80ed99",
+          backgroundColor: "#f0f0f0",
         }}
         resizeMode="cover"
+        onError={(error) => {
+          console.log("Image load error:", error.nativeEvent.error);
+        }}
       />
     );
   }
@@ -64,7 +69,7 @@ const AttachmentThumbnail: React.FC<Props> = ({ item, width = 60 }) => {
           borderRadius: 8,
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#80ed99",
+          backgroundColor: "#ffebee",
           marginBottom: 4,
         }}
       >
@@ -85,7 +90,7 @@ const AttachmentThumbnail: React.FC<Props> = ({ item, width = 60 }) => {
           borderRadius: 8,
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#80ed99",
+          backgroundColor: "#e3f2fd",
           marginBottom: 4,
         }}
       >
@@ -95,7 +100,9 @@ const AttachmentThumbnail: React.FC<Props> = ({ item, width = 60 }) => {
       </View>
     );
   }
-  if (item.file && !item.file.type?.startsWith("image")) {
+
+  // Generic fallback for any other file
+  if (item.file) {
     return (
       <View
         style={{
@@ -106,7 +113,7 @@ const AttachmentThumbnail: React.FC<Props> = ({ item, width = 60 }) => {
           borderRadius: 8,
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#80ed99",
+          backgroundColor: "#fff3e0",
           marginBottom: 4,
         }}
       >
@@ -116,6 +123,7 @@ const AttachmentThumbnail: React.FC<Props> = ({ item, width = 60 }) => {
       </View>
     );
   }
+
   return null;
 };
 

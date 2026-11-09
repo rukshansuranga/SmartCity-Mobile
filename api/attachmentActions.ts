@@ -8,7 +8,7 @@ import { ApiResponse, Attachment, AttachmentUpload } from "@/types";
 export async function uploadAttachmentsClient(
   entityType: EntityType,
   entityId: number,
-  attachments: AttachmentUpload[]
+  attachments: AttachmentUpload[],
 ): Promise<ApiResponse<Attachment[]>> {
   try {
     // Check if attachments is valid
@@ -61,12 +61,12 @@ export async function uploadAttachmentsClient(
     formData.append("ContinueOnError", "true");
 
     console.log(
-      `Making bulk upload request to: attachments/${entityType}/${entityId}/bulk`
+      `Making bulk upload request to: attachments/${entityType}/${entityId}/bulk`,
     );
 
     const response = await fetchWrapper.postFormData(
       `attachments/${entityType}/${entityId}/bulk`,
-      formData
+      formData,
     );
 
     console.log("Bulk upload server response:", response);
@@ -84,7 +84,7 @@ export async function uploadAttachmentsClient(
         errors: bulkResult.hasErrors
           ? bulkResult.errors?.map(
               (err: { FileName: string; Error: string }) =>
-                `${err.FileName}: ${err.Error}`
+                `${err.FileName}: ${err.Error}`,
             ) || []
           : [],
       };
@@ -121,7 +121,7 @@ export async function uploadAttachment({
 
   const response = await fetchWrapper.postFormData(
     `attachments/${entityType}/${entityId}`,
-    formData
+    formData,
   );
 
   if (!response.ok) {
@@ -157,11 +157,11 @@ export async function simpleUpload({ file }) {
 // Client-side get attachments function
 export async function getAttachmentsClient(
   entityType: EntityType,
-  entityId: number
+  entityId: number,
 ): Promise<ApiResponse<Attachment[]>> {
   try {
     const response = await fetchWrapper.get(
-      `attachments/${entityType}/${entityId}`
+      `attachments/${entityType}/${entityId}`,
     );
 
     return response;
@@ -181,7 +181,7 @@ export async function deleteAttachment(id: number): Promise<ApiResponse<void>> {
 }
 
 export async function UpdateAttachments(
-  request: AttachmentUpload[]
+  request: AttachmentUpload[],
 ): Promise<ApiResponse<string>> {
   return fetchWrapper.post("attachments/updateAttachments", request);
 }
@@ -222,7 +222,7 @@ export async function getVideo(params: {
     try {
       // Fetch the file as a Blob
       const blob = await fetchWrapper.getFile(
-        `attachments/${params.attachmentId}/video`
+        `attachments/${params.attachmentId}/video`,
       );
       // Convert Blob to base64
       const base64 = await blobToBase64(blob);

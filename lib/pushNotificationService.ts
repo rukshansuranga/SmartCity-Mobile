@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
-import { Platform } from "react-native";
+import { Alert, Platform } from "react-native";
 
 // Configure notification behavior
 Notifications.setNotificationHandler({
@@ -24,10 +24,20 @@ export class PushNotificationService {
     residentId: string,
   ): Promise<string | null> {
     try {
+      // Check if running on web
+      if (Platform.OS === "web") {
+        console.log("⚠️ Push notifications not supported on web");
+        return null;
+      }
+
       // Check if device is physical (not simulator)
       if (!Device.isDevice) {
         console.log(
           "⚠️ Push notifications only work on physical devices, not simulators",
+        );
+        Alert.alert(
+          "Push Notifications",
+          "Not available on simulator/emulator. Push notifications only work on physical devices.",
         );
         return null;
       }
@@ -47,6 +57,10 @@ export class PushNotificationService {
       // If still not granted, exit
       if (finalStatus !== "granted") {
         console.log("❌ Notification permission not granted");
+        Alert.alert(
+          "Push Notifications",
+          "Permission denied. Please enable notifications in your device settings to receive updates.",
+        );
         return null;
       }
 
@@ -55,6 +69,10 @@ export class PushNotificationService {
 
       if (!projectId) {
         console.error("❌ Expo project ID not found in app.json");
+        Alert.alert(
+          "Push Notification Setup Error",
+          "Project ID missing in configuration. Please contact support.",
+        );
         return null;
       }
 
@@ -85,12 +103,27 @@ export class PushNotificationService {
         await AsyncStorage.setItem(this.STORAGE_KEY, token);
       } else {
         console.error("❌ Failed to register device token:", response.message);
+        Alert.alert(
+          "Push Notification Setup",
+          response.message || "Failed to register with server. You may not receive notifications.",
+        );
         return null;
       }
 
       return token;
     } catch (error) {
       console.error("❌ Error registering for push notifications:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      
+      // Check if it's a Firebase initialization error (only in development)
+      if (errorMessage.includes("FirebaseApp") || errorMessage.includes("firebase")) {
+        console.log("ℹ️ Firebase not configured in this build. Push notifications require EAS Build or manual FCM setup.");
+        console.log("ℹ️ If using EAS Build APK, notifications will work. If testing locally, see PUSH_NOTIFICATIONS_SETUP.md");
+        // Don't show alert in development - just log
+      } else {
+        console.error("❌ Unexpected push notification error:", errorMessage);
+      }
+      
       return null;
     }
   }

@@ -10,6 +10,7 @@ import {
 } from "@/api/complainAction";
 import MediaPicker from "@/components/MediaPicker";
 import { EntityType, WorkpackageStatus } from "@/enums/enum";
+import { fetchWrapper } from "@/lib/fetchWrapper";
 import { useAuthStore } from "@/stores/authStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -79,23 +80,56 @@ export default function ManageGeneralComplain() {
           setValue("isPrivate", res.data.isPrivate ?? true);
           const attRes = await getAttachmentsClient(
             EntityType.GeneralComplain,
-            id
+            id,
           );
           if (attRes.isSuccess && attRes.data) {
             setAttachments(
-              attRes.data.map((a) => ({
-                file: {
-                  uri: a.thumbnailUrl || a.sourceUrl || "",
-                  name: a.fileName,
-                  type: a.contentType || "application/octet-stream",
-                },
-                description: a.description,
-                attachmentType: a.attachmentType,
-                category: a.category,
-                attachmentId: a.attachmentId,
-                thumbnailUrl: a.thumbnailUrl,
-                sourceUrl: a.sourceUrl,
-              }))
+              attRes.data.map((a) => {
+                // Convert relative URLs to full URLs
+                const fullThumbnailUrl = fetchWrapper.getFullUrl(
+                  a.thumbnailUrl,
+                );
+                const fullSourceUrl = fetchWrapper.getFullUrl(a.sourceUrl);
+
+                console.log(
+                  "📸 [THUMBNAIL DEBUG] Original:",
+                  a.thumbnailUrl,
+                  "Full:",
+                  fullThumbnailUrl,
+                );
+                console.log(
+                  "📸 [SOURCE DEBUG] Original:",
+                  a.sourceUrl,
+                  "Full:",
+                  fullSourceUrl,
+                );
+
+                // Infer attachmentType from contentType if not set
+                let attachmentType = a.attachmentType;
+                if (!attachmentType && a.contentType) {
+                  if (a.contentType.startsWith("audio/")) {
+                    attachmentType = "Audio";
+                  } else if (a.contentType.startsWith("video/")) {
+                    attachmentType = "Video";
+                  } else if (a.contentType.startsWith("image/")) {
+                    attachmentType = "Image";
+                  }
+                }
+
+                return {
+                  file: {
+                    uri: fullThumbnailUrl || fullSourceUrl || "",
+                    name: a.fileName,
+                    type: a.contentType || "application/octet-stream",
+                  },
+                  description: a.description,
+                  attachmentType: attachmentType,
+                  category: a.category,
+                  attachmentId: a.attachmentId,
+                  thumbnailUrl: fullThumbnailUrl,
+                  sourceUrl: fullSourceUrl,
+                };
+              }),
             );
           }
         }
@@ -150,11 +184,11 @@ export default function ManageGeneralComplain() {
           const entityId = id;
 
           const shouldAddedAttachments = attachments.filter(
-            (a) => !a.attachmentId
+            (a) => !a.attachmentId,
           );
 
           const shouldUpdateAttachments = attachments.filter(
-            (a) => a.attachmentId
+            (a) => a.attachmentId,
           );
 
           console.log(12333333333333333333333333, shouldUpdateAttachments);
@@ -164,7 +198,7 @@ export default function ManageGeneralComplain() {
           const uploadResult = await uploadAttachmentsClient(
             EntityType.GeneralComplain,
             entityId,
-            shouldAddedAttachments
+            shouldAddedAttachments,
           );
           if (!uploadResult.isSuccess) {
             console.error("❌ [DEBUG] Attachment upload failed", uploadResult);

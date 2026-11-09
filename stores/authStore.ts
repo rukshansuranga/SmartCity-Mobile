@@ -13,6 +13,7 @@ type UserState = {
   userInfo: KeycloakUserInfo | null;
   councils: Council[] | null;
   selectedCouncil: Council | null;
+  isLoggingOut: boolean;
 
   _hasHydrated: boolean;
   logIn: (token: {
@@ -45,6 +46,7 @@ export const useAuthStore = create(
       userInfo: null,
       councils: null,
       selectedCouncil: null,
+      isLoggingOut: false,
 
       _hasHydrated: false,
 
@@ -71,10 +73,21 @@ export const useAuthStore = create(
       },
 
       logOut: async () => {
+        // Prevent multiple simultaneous logout attempts
+        if (get().isLoggingOut) {
+          console.log("Logout already in progress, skipping...");
+          return;
+        }
+
         console.log("Logging out...");
 
-        // Unregister device token before logging out
+        // Set logging out flag to prevent token refresh attempts
+        set((state) => ({ ...state, isLoggingOut: true }));
+
+        // Save user info before clearing tokens
         const currentUserInfo = get().userInfo;
+
+        // Unregister device token (best effort - don't block logout if it fails)
         if (currentUserInfo?.sub) {
           try {
             await PushNotificationService.unregisterPushNotifications(
@@ -83,6 +96,7 @@ export const useAuthStore = create(
             console.log("Device token unregistered successfully");
           } catch (error) {
             console.error("Failed to unregister device token:", error);
+            // Continue with logout even if unregister fails
           }
         }
 
@@ -97,6 +111,7 @@ export const useAuthStore = create(
           councils: null,
           selectedCouncil: null,
           isSignedIn: false,
+          isLoggingOut: false,
         }));
       },
 

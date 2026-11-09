@@ -52,11 +52,18 @@ export default function SelectCouncil() {
         setSelectedCouncil(fullCouncil);
         router.replace("/home");
       } else {
-        setError(response.message || "Failed to fetch council details");
+        const errorMsg = response.message || "Failed to fetch council details";
+        console.error("[SelectCouncil] API returned error:", errorMsg);
+        setError(errorMsg);
       }
     } catch (err) {
       console.error("[SelectCouncil] Error fetching council:", err);
-      setError("Failed to load council details. Please try again.");
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Failed to load council details. Please try again.";
+      console.error("[SelectCouncil] Error details:", errorMessage);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

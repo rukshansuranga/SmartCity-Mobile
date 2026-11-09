@@ -64,14 +64,40 @@ export const useNewsStore = create<NewsState>((set, get) => ({
 
       const response = await getNewsFeed(residentId, page, 20);
 
+      console.log("📰 News feed response:", JSON.stringify(response, null, 2));
+
       if (response.isSuccess && response.data) {
-        const { items, pageIndex, totalPages: total } = response.data;
+        // Handle actual backend response format
+        const records = response.data.records || response.data.items || [];
+        const totalItems =
+          response.data.totalItems ?? response.data.totalCount ?? 0;
+        const pageSize = 20;
+        const calculatedTotalPages = Math.ceil(totalItems / pageSize);
+
+        console.log(
+          `Loaded news feed page ${page} of ${calculatedTotalPages}`,
+          records.length,
+          "items",
+        );
+
+        // Defensive check for data structure
+        if (!Array.isArray(records)) {
+          console.error(
+            "❌ Invalid news feed response structure:",
+            response.data,
+          );
+          set({
+            error: "Invalid data format received from server",
+            isLoading: false,
+          });
+          return;
+        }
 
         set((state) => ({
-          newsList: page === 1 ? items : [...state.newsList, ...items],
-          currentPage: pageIndex,
-          totalPages: total,
-          hasMore: pageIndex < total,
+          newsList: page === 1 ? records : [...state.newsList, ...records],
+          currentPage: page,
+          totalPages: calculatedTotalPages,
+          hasMore: page < calculatedTotalPages,
           isLoading: false,
         }));
       } else {
@@ -96,14 +122,43 @@ export const useNewsStore = create<NewsState>((set, get) => ({
 
       const response = await getNewsFeed(residentId, 1, 20);
 
+      console.log(
+        "🔄 News feed refresh response:",
+        JSON.stringify(response, null, 2),
+      );
+
       if (response.isSuccess && response.data) {
-        const { items, pageIndex, totalPages: total } = response.data;
+        // Handle actual backend response format
+        const records = response.data.records || response.data.items || [];
+        const totalItems =
+          response.data.totalItems ?? response.data.totalCount ?? 0;
+        const pageSize = 20;
+        const calculatedTotalPages = Math.ceil(totalItems / pageSize);
+
+        console.log(
+          `Refreshed news feed page 1 of ${calculatedTotalPages}`,
+          records.length,
+          "items",
+        );
+
+        // Defensive check for data structure
+        if (!Array.isArray(records)) {
+          console.error(
+            "❌ Invalid refresh response structure:",
+            response.data,
+          );
+          set({
+            error: "Invalid data format received from server",
+            isRefreshing: false,
+          });
+          return;
+        }
 
         set({
-          newsList: items,
-          currentPage: pageIndex,
-          totalPages: total,
-          hasMore: pageIndex < total,
+          newsList: records,
+          currentPage: 1,
+          totalPages: calculatedTotalPages,
+          hasMore: 1 < calculatedTotalPages,
           isRefreshing: false,
         });
 

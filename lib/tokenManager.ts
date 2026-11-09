@@ -6,7 +6,14 @@ import { TokenPayload } from "@/types";
  * @returns Promise with new token payload or null if refresh failed
  */
 export async function refreshAccessToken(): Promise<TokenPayload | null> {
-  const { refreshToken, updateTokens, logOut } = useAuthStore.getState();
+  const { refreshToken, updateTokens, logOut, isLoggingOut } =
+    useAuthStore.getState();
+
+  // Don't try to refresh if we're already logging out
+  if (isLoggingOut) {
+    console.log("[TokenManager] Logout in progress, skipping token refresh");
+    return null;
+  }
 
   if (!refreshToken) {
     console.warn("[TokenManager] No refresh token available");
@@ -25,7 +32,7 @@ export async function refreshAccessToken(): Promise<TokenPayload | null> {
     const formBody = Object.entries(formData)
       .map(
         ([key, value]) =>
-          `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+          `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
       )
       .join("&");
 
@@ -38,7 +45,7 @@ export async function refreshAccessToken(): Promise<TokenPayload | null> {
           "Content-Type": "application/x-www-form-urlencoded",
         },
         body: formBody,
-      }
+      },
     );
 
     if (!response.ok) {
@@ -46,7 +53,13 @@ export async function refreshAccessToken(): Promise<TokenPayload | null> {
       // If refresh token is invalid, logout the user
       if (response.status === 400 || response.status === 401) {
         console.warn("[TokenManager] Refresh token invalid, logging out");
-        await logOut();
+        // Use a timeout to avoid blocking and allow the current operation to complete
+        setTimeout(() => {
+          const { isLoggingOut } = useAuthStore.getState();
+          if (!isLoggingOut) {
+            logOut();
+          }
+        }, 0);
       }
       return null;
     }
@@ -74,7 +87,13 @@ export async function refreshAccessToken(): Promise<TokenPayload | null> {
  * @returns Promise<boolean> - true if token is valid or successfully refreshed
  */
 export async function validateAndRefreshToken(): Promise<boolean> {
-  const { accessToken, isTokenExpired } = useAuthStore.getState();
+  const { accessToken, isTokenExpired, isLoggingOut } = useAuthStore.getState();
+
+  // Don't validate/refresh if we're logging out
+  if (isLoggingOut) {
+    console.log("[TokenManager] Logout in progress, skipping token validation");
+    return false;
+  }
 
   // No token at all
   if (!accessToken) {

@@ -13,5 +13,7 @@ export async function getCouncilByName(
   councilName: string,
 ): Promise<ApiResponse<CouncilDetails>> {
   console.log("Fetching council details for:", councilName);
-  return fetchWrapper.get(`misc/council/${councilName}`);
+  const encodedCouncilName = encodeURIComponent(councilName);
+  console.log("Encoded council name:", encodedCouncilName);
+  return fetchWrapper.get(`misc/council/${encodedCouncilName}`);
 }
